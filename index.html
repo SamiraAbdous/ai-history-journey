@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="لعبة خريطة تفاعلية ثنائية اللغة (عربي/إنجليزي) لتعلم تاريخ الذكاء الاصطناعي 1943–2026. من إعداد د. سميرة عبدوس، جامعة أمحمد بوقرة بومرداس.">
+<style>img{max-width:100%}[hidden]{display:none!important}</style>
+<title>رحلة تاريخ الذكاء الاصطناعي</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Changa:wght@600;700;800&family=Tajawal:wght@400;500;700&display=swap">
+<style>
+/* Layout: a vertical "road" map of 9 stations + bonus; each station opens a side panel (story → terms → challenge). */
+:root{
+  --bg:#EEF1F6; --paper:#FFFFFF; --ink:#14213D; --fg:#1F2A44; --muted:#5E6778; --line:#CBD3E0;
+  --accent:#A9521A; --accent-soft:#F6E7DA; --gold:#C9961A; --ice:#D9E8F3; --ice-ink:#2E5C8A;
+  --ok:#2E7D4F; --ok-soft:#DDF0E4; --bad:#B23A3A; --bad-soft:#F6DCDC; --lock:#9AA3B2;
+  --shadow:0 6px 24px rgba(20,33,61,.12);
+  --display:"Changa","Tajawal",system-ui,sans-serif; --body:"Tajawal","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0F1626; --paper:#182238; --ink:#E6ECF7; --fg:#DCE3F0; --muted:#9AA6BD; --line:#2C3A57;
+  --accent:#E08A4B; --accent-soft:#3A2A1E; --gold:#E2B64A; --ice:#1D3350; --ice-ink:#9CC3E8;
+  --ok:#5FC08A; --ok-soft:#1E3A2C; --bad:#E57373; --bad-soft:#3F2222; --lock:#5A6478;
+  --shadow:0 6px 24px rgba(0,0,0,.4); color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0F1626; --paper:#182238; --ink:#E6ECF7; --fg:#DCE3F0; --muted:#9AA6BD; --line:#2C3A57;
+  --accent:#E08A4B; --accent-soft:#3A2A1E; --gold:#E2B64A; --ice:#1D3350; --ice-ink:#9CC3E8;
+  --ok:#5FC08A; --ok-soft:#1E3A2C; --bad:#E57373; --bad-soft:#3F2222; --lock:#5A6478;
+  --shadow:0 6px 24px rgba(0,0,0,.4); color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.7;direction:rtl}
+.wrap{max-width:760px;margin:0 auto;padding-block:16px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);color:var(--ink);line-height:1.3;text-wrap:balance;margin:0}
+h1{font-size:clamp(26px,5vw,36px);font-weight:800}
+.eyebrow{font-size:13px;letter-spacing:.04em;color:var(--muted);font-weight:500}
+header.top{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.byline{margin:0;font-family:var(--display);font-weight:700;font-size:16px;color:var(--accent)}
+.sub{color:var(--muted);font-size:15px;max-width:60ch}
+.hud{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0 18px}
+.hud div{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:8px 10px;text-align:center}
+.hud b{display:block;font-family:var(--display);font-size:22px;color:var(--ink);font-variant-numeric:tabular-nums}
+.hud span{font-size:12px;color:var(--muted)}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:6px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));width:0;transition:width .5s}
+.welcome{margin:4px 0 14px}
+.nameForm label{display:block;font-weight:700;color:var(--ink);margin-bottom:6px}
+.nameRow{display:flex;gap:8px;flex-wrap:wrap}
+.nameRow input{flex:1;min-width:0;border:1px solid var(--line);background:var(--paper);color:var(--fg);border-radius:9px;padding:9px 12px;font-family:var(--body);font-size:16px}
+.nameRow input:focus-visible{outline:2px solid var(--accent);border-color:var(--accent)}
+.greet{background:var(--paper);border:1px solid var(--line);border-right:4px solid var(--accent);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.greet p{margin:0}
+.greet b{font-family:var(--display);color:var(--ink);font-size:18px}
+.greet button{border:0;background:none;color:var(--muted);text-decoration:underline;cursor:pointer;font-family:var(--body);font-size:13px}
+.howto{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:15px;margin-bottom:18px}
+.howto summary{cursor:pointer;font-weight:700;color:var(--ink)}
+.howto ol{margin:8px 0 0;padding-right:20px}
+/* map */
+.map{position:relative;width:100%;aspect-ratio:100/184;max-width:100%}
+.map svg{position:absolute;inset:0;width:100%;height:100%}
+.zone{position:absolute;left:0;right:0;background:var(--ice);border-block:1px dashed var(--ice-ink);opacity:.7}
+.zone span{position:absolute;top:6px;left:10px;font-size:12px;color:var(--ice-ink);font-weight:700}
+.st{position:absolute;width:19%;transform:translate(50%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:0;padding:0;cursor:pointer;color:var(--fg);font-family:var(--body)}
+.st .dot{width:54px;height:54px;border-radius:50%;background:var(--paper);border:3px solid var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:20px;color:var(--ink);box-shadow:var(--shadow);transition:transform .2s}
+.st:hover .dot,.st:focus-visible .dot{transform:scale(1.08)}
+.st:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:12px}
+.st .lbl{font-size:13px;font-weight:700;line-height:1.25;text-align:center;color:var(--ink);background:var(--paper);padding:2px 7px;border-radius:8px;border:1px solid var(--line);max-width:100%}
+.st .yrs{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.st .stars{font-size:12px;color:var(--gold);letter-spacing:1px;height:14px}
+.st.locked .dot{border-color:var(--lock);color:var(--lock);background:var(--bg)}
+.st.locked .lbl{color:var(--lock)}
+.st.cur .dot{border-color:var(--accent);color:var(--accent);animation:pulse 1.6s infinite}
+.st.done .dot{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.st.bonus .dot{border-style:dashed;border-radius:14px}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(169,82,26,.45)}60%{box-shadow:0 0 0 14px rgba(169,82,26,0)}}
+@media (max-width:480px){.st{width:28%}.st .dot{width:46px;height:46px;font-size:17px}.st .lbl{font-size:12px}body{font-size:16px}}
+@media (prefers-reduced-motion:reduce){.st.cur .dot{animation:none}.bar i{transition:none}}
+/* panel */
+.panel{position:fixed;inset:0;background:rgba(10,16,30,.55);display:flex;justify-content:flex-start;z-index:20;padding-top:env(safe-area-inset-top,0px)}
+.sheet{background:var(--bg);width:min(560px,100%);height:100%;overflow-y:auto;box-shadow:var(--shadow);padding-block:14px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:12px}
+.sheet .head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.sheet h2{font-size:22px}
+.close{border:1px solid var(--line);background:var(--paper);color:var(--fg);border-radius:8px;padding:4px 10px;font-family:var(--body);font-size:15px;cursor:pointer}
+.tabs{display:flex;gap:6px;border-bottom:2px solid var(--line)}
+.tabs button{flex:1;border:0;background:none;padding:8px 4px;font-family:var(--display);font-weight:700;font-size:15px;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}
+.tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.tabs button:disabled{opacity:.45;cursor:not-allowed}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.card p{margin:0 0 8px}.card p:last-child{margin:0}
+.ev{display:grid;grid-template-columns:62px 1fr;gap:8px;padding:8px 0;border-top:1px solid var(--line);font-size:15px}
+.ev:first-child{border-top:0}
+.ev b{font-family:var(--display);color:var(--accent);font-variant-numeric:tabular-nums;font-size:15px}
+.ev small{display:block;color:var(--muted)}
+.lesson{border-right:4px solid var(--accent);background:var(--accent-soft);border-radius:8px;padding:8px 12px;font-size:15px}
+.terms{display:grid;gap:10px}
+.term{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;text-align:right;font-family:var(--body);color:var(--fg);font-size:15px;width:100%}
+.term .en{font-family:var(--display);font-weight:700;font-size:17px;color:var(--ink);direction:ltr;text-align:right;display:block}
+.term .fr{color:var(--muted);font-size:13px;direction:ltr;text-align:right;display:block}
+.term .ar{font-weight:700;color:var(--accent);display:block;margin-top:2px}
+.term .back{margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}
+.term .back b{color:var(--ink)}
+.hint{font-size:13px;color:var(--muted)}
+.q{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.q .qt{font-weight:700;color:var(--ink);margin:0 0 8px}
+.q .kind{font-size:12px;color:var(--muted);letter-spacing:.03em}
+.opts{display:grid;gap:6px}
+.opt{border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:9px;padding:8px 12px;text-align:right;font-family:var(--body);font-size:15px;cursor:pointer;display:flex;gap:8px;align-items:flex-start}
+.opt:hover{border-color:var(--accent)}
+.opt:focus-visible{outline:2px solid var(--accent)}
+.opt .k{font-family:var(--display);font-weight:700;color:var(--muted);min-width:18px}
+.opt.sel{border-color:var(--ink);background:var(--paper)}
+.opt.ok{border-color:var(--ok);background:var(--ok-soft)}
+.opt.bad{border-color:var(--bad);background:var(--bad-soft)}
+.opt:disabled{cursor:default}
+.ord .opt .k{background:var(--ink);color:var(--paper);border-radius:6px;padding:0 6px;min-width:22px;text-align:center}
+.ord .opt .k:empty{background:none}
+.fb{margin-top:8px;border-radius:8px;padding:8px 12px;font-size:14px}
+.fb.ok{background:var(--ok-soft);color:var(--ok)}.fb.bad{background:var(--bad-soft);color:var(--bad)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.btn{border:0;background:var(--accent);color:#fff;border-radius:9px;padding:8px 16px;font-family:var(--display);font-weight:700;font-size:15px;cursor:pointer}
+.btn.ghost{background:var(--paper);color:var(--ink);border:1px solid var(--line)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.result{background:var(--ink);color:#fff;border-radius:12px;padding:14px;text-align:center}
+.result b{font-family:var(--display);font-size:26px;display:block;color:var(--gold)}
+:root[data-theme="dark"] .result,:root:not([data-theme="light"]) .result{color:var(--bg)}
+.result .s{font-size:22px;color:var(--gold);letter-spacing:3px}
+.final{background:var(--paper);border:2px solid var(--gold);border-radius:14px;padding:16px;margin-top:18px;display:none}
+.final.show{display:block}
+.final h2{font-size:22px;margin-bottom:6px}
+.final table{width:100%;border-collapse:collapse;font-size:14px}
+.final td,.final th{border-bottom:1px solid var(--line);padding:5px 6px;text-align:right}
+.foot{margin-top:22px;font-size:13px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between}
+.foot button{border:0;background:none;color:var(--muted);text-decoration:underline;cursor:pointer;font-family:var(--body);font-size:13px}
+
+/* language */
+.langbar{display:flex;justify-content:flex-end;gap:4px;margin-bottom:6px}
+.langbar button{border:1px solid var(--line);background:var(--paper);color:var(--muted);border-radius:8px;padding:3px 10px;font-family:var(--display);font-weight:700;font-size:13px;cursor:pointer}
+.langbar button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.langbar button:focus-visible{outline:2px solid var(--accent)}
+html[lang="en"] body{direction:ltr}
+html[lang="en"] .term,html[lang="en"] .opt,html[lang="en"] .final td,html[lang="en"] .final th{text-align:left}
+html[lang="en"] .term .en,html[lang="en"] .term .fr{text-align:left}
+html[lang="en"] .lesson{border-right:0;border-left:4px solid var(--accent)}
+html[lang="en"] .greet{border-right:1px solid var(--line);border-left:4px solid var(--accent)}
+html[lang="en"] .howto ol{padding-right:0;padding-left:20px}
+html[lang="en"] .zone span{left:auto;right:10px}
+html[lang="en"] .panel{justify-content:flex-end}
+html[lang="en"] .st .lbl{font-family:var(--display);font-weight:600}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <div class="langbar" role="group" aria-label="Language">
+    <button type="button" data-lang="ar" aria-pressed="true">العربية</button>
+    <button type="button" data-lang="en" aria-pressed="false">English</button>
+  </div>
+  <header class="top">
+    <span class="eyebrow" data-ui="eyebrow"></span>
+    <h1 data-ui="title"></h1>
+    <p class="byline" data-ui="byline"></p>
+    <p class="sub" data-ui="sub"></p>
+  </header>
+
+  <section class="welcome" id="welcome">
+    <form id="nameForm" class="nameForm">
+      <label for="studentName" data-ui="nameLabel"></label>
+      <div class="nameRow">
+        <input id="studentName" type="text" maxlength="40" autocomplete="off" required>
+        <button class="btn" type="submit" data-ui="start"></button>
+      </div>
+    </form>
+    <div id="greet" class="greet" hidden></div>
+  </section>
+  <div class="bar"><i id="bar"></i></div>
+  <div class="hud">
+    <div><b id="hScore">0</b><span data-ui="points"></span></div>
+    <div><b id="hStars">0</b><span data-ui="stars"></span></div>
+    <div><b id="hDone">0 / 10</b><span data-ui="stations"></span></div>
+  </div>
+
+  <details class="howto">
+    <summary data-ui="howTitle"></summary>
+    <ol id="howList"></ol>
+  </details>
+
+  <div class="map" id="map">
+    <svg viewBox="0 0 100 184" preserveAspectRatio="none" aria-hidden="true">
+      <path id="road" d="" fill="none" stroke="var(--line)" stroke-width="3.2" stroke-linecap="round"/>
+      <path id="roadDone" d="" fill="none" stroke="var(--accent)" stroke-width="3.2" stroke-linecap="round"/>
+    </svg>
+  </div>
+
+  <section class="final" id="final" aria-live="polite"></section>
+
+  <div class="foot">
+    <span data-ui="foot"></span>
+    <button id="reset" type="button" data-ui="reset"></button>
+  </div>
+</div>
+
+<div class="panel" id="panel" hidden role="dialog" aria-modal="true" aria-labelledby="pTitle">
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<script>
+const S_AR = [
+ {id:'s0',n:'1',t:'قبل الحاسوب',y:'حلم قديم',x:78,yy:11,
+  story:[`فكرة الآلة التي تفكر أقدم من الحاسوب بكثير: حارس برونزي اسمه تالوس (Talos) في الأساطير الإغريقية يحرس جزيرة كريت، وآلات ذاتية الحركة (Automata) صمّمها الجزري (Al-Jazari) في مطلع القرن الثالث عشر تسقي وتعزف، و«الآلة التحليلية» (Analytical Engine) لتشارلز باباج (Charles Babbage) التي كتبت عنها آدا لوفلايس (Ada Lovelace) سنة 1843 أول ما يشبه البرنامج (Program)، مع ملاحظة ما زلنا نناقشها: «الآلة لا تبتكر شيئًا؛ تفعل فقط ما نعرف كيف نأمرها به».`,
+   `ثلاث أفكار قديمة مهّدت للحقل: أن <b>الاستدلال حساب</b> (Reasoning as calculation، لايبنتز Leibniz)، وأن <b>المنطق يمكن ترميزه</b> (Formal logic، بول Boole وفريغه Frege)، وأن <b>آلة واحدة تستطيع تنفيذ أي حساب</b> (Universal machine، تورينغ Turing 1936). حين توفر الحاسوب الإلكتروني (Electronic computer) في الأربعينيات كان السؤال جاهزًا: هل يستطيع أن يفكر؟`],
+  lesson:'السؤال سبق الأداة بقرون؛ الجديد في القرن العشرين هو الآلة لا الفكرة.',
+  terms:[{en:'Analytical Engine',fr:'Machine analytique',ar:'الآلة التحليلية',s:'تصميم باباج (القرن 19) لآلة حاسبة عامة قابلة للبرمجة؛ لم تُبنَ كاملة في حياته.',c:'لا تخلط بينها وبين الحاسوب الإلكتروني: كانت ميكانيكية بالكامل.'},
+         {en:'Universal machine',fr:'Machine universelle',ar:'الآلة الشاملة',s:'فكرة تورينغ (1936): آلة واحدة تستطيع تنفيذ أي حساب يمكن وصفه بخطوات. أساس كل حاسوب.',c:'ليست اختبار تورينغ (1950)؛ ذاك سؤال عن الذكاء، وهذه عن الحساب.'}],
+  qs:[{k:'mcq',q:'أي فكرة تُنسب إلى تورينغ (Turing) سنة 1936؟',o:['الاستدلال حساب','المنطق يمكن ترميزه','آلة واحدة تستطيع تنفيذ أي حساب','الآلة تبتكر من تلقاء نفسها'],a:2,w:'الآلة الشاملة لتورينغ هي الفكرة التي صار الحاسوب تجسيدًا لها.'},
+      {k:'tf',q:'كتبت آدا لوفلايس (Ada Lovelace) أن الآلة تستطيع أن تبتكر ما لم يُؤمر به.',a:false,w:'قالت العكس تمامًا: الآلة تفعل فقط ما نعرف كيف نأمرها به. وهذا الاعتراض ما زال في قلب النقاش اليوم.'}]},
+ {id:'s1',n:'2',t:'التأسيس',y:'1943–1956',x:30,yy:28,
+  ev:[['1943','ماكولوك وبيتس (McCulloch & Pitts): أول نموذج رياضي لخلية عصبية (Artificial neuron)','خلية تجمع مدخلات وتُخرج 1 أو 0: بذرة الشبكات العصبية (Neural networks)'],['1950','آلان تورينغ (Alan Turing): «هل تستطيع الآلات أن تفكر؟»','تحويل سؤال فلسفي إلى اختبار عملي: اختبار تورينغ (Turing test)'],['1956','ورشة دارتموث الصيفية (Dartmouth Workshop): مكارثي (McCarthy)، مينسكي (Minsky)، شانون (Shannon)، روتشستر (Rochester)','وُلد المصطلح «الذكاء الاصطناعي» (Artificial Intelligence) ووُعد بأن «كل جانب من التعلم يمكن وصفه بدقة كافية لتحاكيه آلة»']],
+  lesson:'اقترح منظمو دارتموث (Dartmouth) أن شهرين وعشرة باحثين يكفون لإحراز تقدم كبير. استغرق الأمر سبعين سنة.',
+  terms:[{en:'Dartmouth Workshop (1956)',fr:'Conférence de Dartmouth',ar:'ورشة دارتموث',s:'اجتماع صيفي لعشرة باحثين في كلية دارتموث الأمريكية يُعدّ شهادة ميلاد الحقل واسمه.',c:'ليست أول بحث في الذكاء الاصطناعي؛ تورينغ وماكولوك سبقوها، لكنها أول مرة يُجمع فيها الحقل تحت اسم واحد.'},
+         {en:'Artificial neuron',fr:'Neurone artificiel',ar:'الخلية العصبية الاصطناعية',s:'دالة بسيطة: تأخذ أرقامًا، تضرب كل واحد في «وزن»، تجمعها، فإذا تجاوز المجموع عتبة أخرجت إشارة. آلاف منها مرتبطة تكوّن شبكة.',c:'الخلية الحقيقية في الدماغ أعقد بمراحل؛ الاصطناعية استعارة رياضية مبسطة جدًا.'}],
+  qs:[{k:'order',q:'رتّب الأحداث من الأقدم إلى الأحدث:',o:['ورشة دارتموث وميلاد المصطلح','أول نموذج رياضي لخلية عصبية','ورقة تورينغ «هل تستطيع الآلات أن تفكر؟»'],a:[1,2,0],w:'1943 الخلية العصبية، 1950 تورينغ، 1956 دارتموث.'},
+      {k:'mcq',q:'المصطلح Artificial Intelligence صيغ رسميًا في:',o:['ورقة تورينغ 1950','ورشة دارتموث 1956','كتاب Perceptrons 1969','إطلاق ChatGPT 2022'],a:1,w:'مكارثي ومينسكي وشانون وروتشستر في صيف 1956.'}]},
+ {id:'s2',n:'3',t:'العصر الذهبي',y:'1956–1974',x:72,yy:46,
+  story:[`بعد دارتموث تدفق التمويل الحكومي الأمريكي وظهرت برامج بدت معجزة: تثبت نظريات هندسية (Geometry Theorem Prover، غيلرنتر Gelernter 1959)، تلعب الداما (Checkers/Draughts، برنامج آرثر صامويل Arthur Samuel 1952–1959 الذي تعلم من مبارياته)، تحل مسائل جبر مكتوبة بالإنجليزية (STUDENT، بوبرو Bobrow 1964). ساد الاعتقاد بأن الذكاء = <b>معالجة رموز بقواعد منطقية</b> (Symbolic reasoning)، وأن ما ينقص هو ذاكرة (Memory) أكبر فقط.`],
+  ev:[['1958','فرانك روزنبلات (Frank Rosenblatt): البرسبترون (Perceptron)، أول شبكة عصبية تتعلم','الصحف تنبأت بـ«حاسوب يمشي ويتكلم ويرى»'],['1965','DENDRAL: أول نظام خبير (Expert system) للتحليل الكيميائي','معرفة الخبراء يمكن ترميزها قواعد «إذا... فـ...» (If–then rules)'],['1966','ELIZA (فايزنباوم Weizenbaum) يحاكي معالجًا نفسيًا بإعادة صياغة كلامك','الناس ينسبون فهمًا للآلة لا تملكه: تأثير إليزا (ELIZA effect)'],['1969','كتاب «Perceptrons» لمينسكي وبابرت (Minsky & Papert)','الشبكة أحادية الطبقة (Single-layer) لا تتعلم دالة XOR؛ جفّ تمويل الشبكات عقدين']],
+  lesson:'طلب موظفون من مصمم ELIZA أن يتركهم وحدهم مع البرنامج. ميلنا إلى نسبة فهم ومشاعر لآلة تنتج لغة سليمة (ELIZA effect) سيتكرر مع ChatGPT.',
+  terms:[{en:'Symbolic AI (GOFAI)',fr:'IA symbolique',ar:'الذكاء الاصطناعي الرمزي',s:'المقاربة التي تمثل المعرفة برموز وقواعد منطقية يكتبها الإنسان ويستدل عليها الحاسوب.',c:'عكسها المقاربة الإحصائية: لا يكتب أحد القاعدة بل تُستخرج من البيانات.'},
+         {en:'Perceptron',fr:'Perceptron',ar:'البرسبترون',s:'أبسط شبكة عصبية: طبقة واحدة تتعلم أوزانها من الأمثلة بتصحيح الخطأ تدريجيًا. جدّ كل الشبكات الحديثة.',c:'لا يحل ما يحتاج خطًا منحنيًا (مثل XOR)؛ لذلك نحتاج طبقات متعددة، أي تعلمًا عميقًا.'},
+         {en:'ELIZA effect',fr:'Effet ELIZA',ar:'تأثير إليزا',s:'ميل الإنسان إلى نسبة فهم ونوايا لبرنامج ينتج لغة سليمة.',c:'ليس خطأ البرنامج بل خطأ القارئ؛ وهو خطر نفسي وتجاري في عصر روبوتات المحادثة.'}],
+  qs:[{k:'mcq',q:'ماذا كان يفعل ELIZA حين تقول «أمي لا تفهمني»؟',o:['يحلل مشاعرك بنموذج نفسي','يعيد صياغة جملتك سؤالًا: «حدثني أكثر عن أمك»','يبحث في قاعدة بيانات طبية','يتعلم من محادثات سابقة'],a:1,w:'قواعد إعادة صياغة بسيطة، ومع ذلك نسب له الناس فهمًا.'},
+      {k:'tf',q:'برهن مينسكي وبابرت سنة 1969 أن البرسبترون أحادي الطبقة لا يستطيع تعلم دالة XOR.',a:true,w:'صحيح، ونتج عن ذلك جفاف تمويل الشبكات العصبية نحو عقدين، رغم أن الحل (طبقات متعددة) كان ممكنًا نظريًا.'}]},
+ {id:'s3',n:'4',t:'الشتاء الأول',y:'1974–1980',x:28,yy:64,winter:true,
+  story:[`بحلول منتصف السبعينيات كانت النتائج أقل بكثير من الوعود. تقرير لايتهيل (Lighthill Report، 1973) في بريطانيا خلص إلى أن الحقل لم يحقق «أثرًا كبيرًا» وأوصى بوقف التمويل (Funding)، وتبعته الوكالات الأمريكية (DARPA).`,
+   `ثلاثة أسباب تقنية: <b>الانفجار التوافقي</b> (Combinatorial explosion: ما يعمل على مسألة صغيرة ينهار حين يكبر عدد الاحتمالات)، <b>نقص الحوسبة والذاكرة</b> (Computing power: حواسيب السبعينيات أضعف من آلة حاسبة اليوم)، و<b>مشكلة المعرفة العامة</b> (Common sense): لفهم «وضع الرجل الكأس على الطاولة فانكسرت» يحتاج البرنامج أن يعرف أن الكأس هو ما ينكسر لا الطاولة.`],
+  lesson:'الشتاء (AI winter) لا يعني توقف البحث بل توقف الضجة (Hype) والتمويل؛ خلال الشتاءين وُضعت أسس ما نجح لاحقًا.',
+  terms:[{en:'AI winter',fr:'Hiver de l’IA',ar:'شتاء الذكاء الاصطناعي',s:'فترة ينهار فيها التمويل والاهتمام بعد وعود مبالغ فيها لم تتحقق. عرف الحقل شتاءين كبيرين (1974–1980 و1987–1993).',c:'اليوم يسأل المستثمرون: هل يلي فقاعة النماذج اللغوية شتاء ثالث؟'},
+         {en:'Combinatorial explosion',fr:'Explosion combinatoire',ar:'الانفجار التوافقي',s:'تضاعف عدد الاحتمالات بسرعة هائلة مع كبر المسألة، فتصير الطرق التي تنجح في الصغير مستحيلة في الكبير.',c:'الشطرنج فيه احتمالات أكثر من ذرات الكون؛ لذلك لا يُحل بتجربة كل الاحتمالات.'}],
+  qs:[{k:'multi',q:'لعبور الشتاء الأول، اختر الأسباب الثلاثة الحقيقية لانهيار التمويل (3 إجابات):',o:['الانفجار التوافقي','نقص القدرة الحسابية والذاكرة','اختراع الإنترنت','مشكلة المعرفة العامة','منع الحكومات للبحث كليًا'],a:[0,1,3],w:'الإنترنت جاء لاحقًا، والحكومات خفضت التمويل ولم تمنع البحث.'},
+      {k:'mcq',q:'تقرير لايتهيل (Lighthill Report، 1973) أوصى بـ:',o:['زيادة تمويل الشبكات العصبية','وقف تمويل بحوث الذكاء الاصطناعي في بريطانيا','بناء حاسوب أكبر','إطلاق مشروع الجيل الخامس'],a:1,w:'خلص إلى أن الحقل لم يحقق «أثرًا كبيرًا»، وتبعته الوكالات الأمريكية.'}]},
+ {id:'s4',n:'5',t:'الأنظمة الخبيرة',y:'1980–1993',x:70,yy:82,winter:true,
+  story:[`عاد الحقل بفكرة متواضعة: بدل تقليد العقل كله، نأخذ خبيرًا في مجال ضيق ونحوّل خبرته إلى مئات القواعد. كانت الأنظمة الخبيرة (Expert systems) أول ذكاء اصطناعي يدرّ مالًا: نظام XCON في شركة DEC وفّر عشرات ملايين الدولارات سنويًا في تركيب الحواسيب، وMYCIN (ستانفورد Stanford) اقترح مضادات حيوية بدقة قاربت الأطباء.`,
+   `<b>لماذا انهارت؟</b> كتابة القواعد بطيئة ومكلفة («عنق زجاجة اكتساب المعرفة» Knowledge acquisition bottleneck)، والأنظمة هشة (Brittle) خارج مجالها، لا تتعلم من أخطائها، وصيانة (Maintenance) آلاف القواعد المتناقضة كابوس. مع انهيار سوق حواسيب LISP (1987) وفشل مشروع «الجيل الخامس» الياباني (Fifth Generation Project) دخل الحقل شتاءه الثاني (Second AI winter)؛ حتى صار الباحثون يتجنبون كلمة «ذكاء اصطناعي» ويقولون «تعلم آلي» (Machine learning).`],
+  lesson:'قواعد التنبيه في البنوك (Rule-based alerts: «إذا سُحب مبلغ يفوق السقف اليومي من الخارج فأوقف البطاقة») منطق خبير ما زال بيننا، ويُدمج اليوم مع نماذج التعلم الآلي (Machine learning).',
+  terms:[{en:'Expert system',fr:'Système expert',ar:'النظام الخبير',s:'برنامج يحاكي قرارات خبير بشري في مجال ضيق عبر قواعد كتبها مهندسو المعرفة بعد مقابلة الخبير.',c:'نظام التعلم الآلي لا يقابل أحد الخبير؛ يتعلم من ملفات سابقة. الخبير يشرح قراره، النموذج الإحصائي غالبًا لا.'},
+         {en:'Knowledge base / Inference engine',fr:'Base de connaissances / Moteur d’inférence',ar:'قاعدة المعرفة / محرك الاستدلال',s:'قاعدة المعرفة هي «ماذا نعرف» (الحقائق والقواعد)؛ محرك الاستدلال هو «كيف نستعمله» على حالة جديدة.',c:'قاعدة البيانات تخزن حقائق فقط؛ قاعدة المعرفة تخزن أيضًا قواعد للاستدلال.'}],
+  qs:[{k:'mcq',q:'«إذا تأخر الزبون أكثر من 3 أشهر فهو متعثر» + «الزبون تأخر 4 أشهر» ⟵ «متعثر». هذا مثال على:',o:['تعلم آلي من البيانات','نظام خبير: قاعدة + حقيقة + استدلال','شبكة عصبية','نموذج لغوي'],a:1,w:'القاعدة كتبها خبير، والحقيقة من الحالة، ومحرك الاستدلال يطبّق.'},
+      {k:'mcq',q:'السبب الأهم في انهيار الأنظمة الخبيرة (Expert systems):',o:['كانت تتعلم بسرعة كبيرة','كتابة القواعد مكلفة والأنظمة هشة خارج مجالها','لم تُستعمل تجاريًا قط','منعتها الحكومات'],a:1,w:'عنق زجاجة اكتساب المعرفة والهشاشة؛ وأيضًا انهيار سوق LISP وفشل الجيل الخامس.'}]},
+ {id:'s5',n:'6',t:'عودة الإحصاء',y:'1993–2011',x:30,yy:100,
+  story:[`في التسعينيات تحوّل الحقل بهدوء من «كيف نرمّز المعرفة» (Knowledge representation) إلى «كيف نتعلمها من البيانات» (Learning from data). استعار أدوات الإحصاء (Statistics) والاحتمالات (Probability) وتخلى عن الطموح الفلسفي لصالح أداء يُقاس بالأرقام (Benchmarks).`],
+  ev:[['1986','انتشار خوارزمية الانتشار العكسي (Backpropagation: روميلهارت وهينتون وويليامز Rumelhart, Hinton & Williams)','حُلّت XOR نظريًا بالشبكات متعددة الطبقات (Multi-layer)؛ الحواسيب والبيانات لم تكن كافية بعد'],['1997','Deep Blue (IBM) يهزم غاري كاسباروف (Garry Kasparov) في الشطرنج','قوة حسابية (Computing power) + بحث ذكي (Search) في مجال مغلق القواعد؛ حساب لا فهم'],['1998–2006','الإنترنت والبيانات الضخمة (Big data) وجائزة Netflix (Netflix Prize) لتحسين التوصية (Recommendation)','البيانات صارت الوقود'],['2011','Watson (IBM) يفوز في مسابقة Jeopardy! ضد بشر','معالجة اللغة الإحصائية (Statistical NLP) تبلغ المستوى البشري في مهمة محددة']],
+  lesson:'كثير مما نسميه اليوم «ذكاء اصطناعي» في المؤسسات هو تعلم آلي كلاسيكي (Classical machine learning) من هذه الحقبة.',
+  terms:[{en:'Backpropagation',fr:'Rétropropagation',ar:'الانتشار العكسي',s:'نحسب خطأ المخرج ثم نوزع «اللوم» عكسيًا على كل وزن في الشبكة ونصححه قليلًا. تكرارها ملايين المرات = التعلم.',c:'ليست خوارزمية «فهم» بل تصحيح رياضي للأوزان؛ الشبكة لا تعرف لماذا تحسّنت.'},
+         {en:'Machine Learning era',fr:'Ère de l’apprentissage automatique',ar:'عصر التعلم الآلي',s:'صار الأداء يُقاس على بيانات اختبار، وصارت الخوارزميات تتنافس على مجموعات بيانات معيارية.',c:'مسابقات Kaggle اليوم امتداد مباشر لهذه الثقافة.'}],
+  qs:[{k:'tf',q:'هزم Deep Blue كاسباروف لأنه فهم الشطرنج كما يفهمه الإنسان.',a:false,w:'حسب ملايين الاحتمالات في الثانية بقواعد تقييم كتبها بشر؛ لم يتعلم ولم يفهم.'},
+      {k:'mcq',q:'أقرب تشبيه للانتشار العكسي (Backpropagation):',o:['طالب يحفظ الدرس عن ظهر قلب','طالب يراجع امتحانًا مصححًا ويعدل فهمه لكل نقطة أخطأ فيها','طالب يسأل خبيرًا ويكتب قواعده','طالب يخمّن عشوائيًا'],a:1,w:'الخطأ يُوزَّع عكسيًا على الأوزان ويُصحح تدريجيًا.'}]},
+ {id:'s6',n:'7',t:'التعلم العميق',y:'2012–2017',x:72,yy:118,
+  story:[`في سبتمبر 2012 شاركت شبكة اسمها AlexNet (كريجيفسكي وسوتسكيفر وهينتون Krizhevsky, Sutskever & Hinton) في مسابقة ImageNet (مليون صورة، ألف فئة) فخفضت نسبة الخطأ (Error rate) من 26% إلى 16% دفعة واحدة بينما كانت الفرق تتنافس على أعشار النقطة. السر: شبكة عميقة (Deep network، 8 طبقات) دُرّبت على <b>معالجات رسوميات</b> (GPU) ببيانات ضخمة. خلال ثلاث سنوات تحول كل حقل الرؤية الحاسوبية (Computer vision)، ثم التعرف على الكلام (Speech recognition)، ثم الترجمة الآلية (Machine translation).`],
+  ev:[['2012','AlexNet تفوز بـ ImageNet','التعلم العميق (Deep learning) يهزم كل الطرق الأخرى'],['2013','word2vec (Google)','الكلمات تصبح متجهات (Vectors / Embeddings) تحمل معنى'],['2014','الشبكات التوليدية التنافسية (GAN: غودفيلو Goodfellow)','أول صور مولّدة (Generated images) مقنعة'],['2016','AlphaGo (DeepMind) يهزم بطل لعبة Go لي سيدول (Lee Sedol)','تعلم بالتعزيز (Reinforcement learning) + تعلم عميق'],['2017','ورقة «Attention Is All You Need» (Google)','ولادة المحوّل (Transformer)، أساس كل النماذج اللغوية']],
+  lesson:'الأفكار (الشبكة العصبية Neural network، الانتشار العكسي Backpropagation) كانت موجودة قبل عقود؛ الذي حسم هو البيانات المصنفة (Labeled data) والحوسبة (Compute).',
+  terms:[{en:'ImageNet',fr:'ImageNet',ar:'قاعدة ImageNet',s:'أكثر من 14 مليون صورة مصنفة يدويًا أنشأتها فاي-فاي لي؛ مسابقتها السنوية أظهرت تفوق التعلم العميق.',c:'ليست خوارزمية بل مجموعة بيانات؛ القيمة في العمل البشري الضخم لتصنيف الصور.'},
+         {en:'Reinforcement Learning',fr:'Apprentissage par renforcement',ar:'التعلم بالتعزيز',s:'الآلة تتعلم بالتجربة والخطأ: تجرب فعلًا، تنال مكافأة أو عقوبة، وتعدل سلوكها لتعظيم المكافأة.',c:'التعلم الموجّه يتعلم من أمثلة مصنفة سلفًا؛ التعزيز يتعلم من نتائج أفعاله.'}],
+  qs:[{k:'mcq',q:'ما الذي أثبتته AlexNet سنة 2012؟',o:['أن الشبكات أحادية الطبقة كافية','أن الشبكات العميقة مع بيانات ضخمة وGPU تتفوق بفارق كبير','أن الحاسوب يفهم الصور كالإنسان','أن الأنظمة الخبيرة أفضل'],a:1,w:'خفض الخطأ من 26% إلى 16% دفعة واحدة.'},
+      {k:'order',q:'رتّب من الأقدم إلى الأحدث:',o:['ورقة المحوّل (Transformer) «Attention Is All You Need»','AlphaGo يهزم لي سيدول (Lee Sedol)','AlexNet تفوز بـ ImageNet'],a:[2,1,0],w:'2012 AlexNet، 2016 AlphaGo، 2017 المحوّل.'}]},
+ {id:'s7',n:'8',t:'المحوّلات والتوليد',y:'2017–2026',x:30,yy:136,
+  story:[`المحوّل (Transformer) بنية تقرأ الجملة كلها دفعة واحدة وتحسب لكل كلمة «انتباهها» (Attention) إلى الكلمات الأخرى، وتتدرب بالتوازي (In parallel) على نصوص هائلة. ومنه وُلدت النماذج اللغوية الكبيرة (Large Language Models, LLMs): كلما زاد الحجم والبيانات والحوسبة تحسن الأداء بانتظام مدهش (قوانين التوسع Scaling laws). ثم خرج كل هذا من المخابر إلى الجمهور.`],
+  ev:[['2018','BERT (Google) وGPT-1 (OpenAI)','نماذج مدربة مسبقًا (Pre-trained) تُكيَّف (Fine-tuned) لأي مهمة'],['2020','GPT-3: 175 مليار معامل (Parameters)','نصوص مقنعة من بضعة أمثلة (Few-shot)'],['2022','Stable Diffusion وDALL·E 2 وMidjourney','توليد الصور من النص (Text-to-image) للجميع'],['نوفمبر 2022','إطلاق ChatGPT (OpenAI)','100 مليون مستعمل في شهرين: أسرع تبنٍّ (Adoption) لتطبيق في التاريخ'],['2023','GPT-4 وClaude وGemini وLlama (مفتوح Open-weights)','نماذج متعددة الوسائط (Multimodal) وأول تنظيم قانوني شامل (EU AI Act)'],['2024','الوكلاء (Agents) والنماذج المستدلة (Reasoning models)','نماذج «تفكر» قبل الإجابة، وتخطط وتنفذ مهامًا متعددة الخطوات وتستعمل أدوات (Tool use)'],['يناير 2025','DeepSeek-R1 من الصين','نموذج استدلال مفتوح (Open reasoning model) بتكلفة تدريب (Training cost) أقل بكثير؛ هزّ أسواق المال وأعاد النقاش حول قوانين التوسع (Scaling laws) والتكلفة'],['2025','الوكلاء يستعملون الحاسوب والمتصفح (Computer use)','بداية تطبيق قانون الاتحاد الأوروبي (AI Act): المحظورات (فبراير) ثم التزامات النماذج العامة (GPAI، أوت)'],['2026','جيل جديد من النماذج وانتشار الوكلاء في المؤسسات (Enterprise agents)','السؤال ينتقل من «ماذا تستطيع الآلة؟» إلى «من يراقب ومن يُسأل؟» (Human oversight، المحاضرة 13)']],
+  lesson:'النظام الخبير (Expert system) كان نظامًا لكل مهمة؛ النموذج الأساس (Foundation model) نموذج واحد لمهام لا تُحصى: تكلفة ثابتة (Fixed cost) هائلة وتكلفة حدية (Marginal cost) منخفضة.',
+  terms:[{en:'Transformer',fr:'Transformeur',ar:'المحوّل',s:'بنية (2017) تعتمد آلية «الانتباه» لتحديد أي أجزاء المدخل أهم لفهم كل جزء. الحرف T في GPT.',c:'لفهم «البنك» في «جلست على ضفة البنك» ينتبه النموذج إلى «ضفة» فيفهم أنه نهر لا مصرف.'},
+         {en:'Foundation model',fr:'Modèle de fondation',ar:'النموذج الأساس',s:'نموذج ضخم يُدرَّب مرة واحدة على بيانات عامة ثم يُكيَّف لآلاف المهام دون إعادة تدريب من الصفر.',c:'GPT-4 نموذج أساس؛ ChatGPT وروبوت محادثة بنكك تطبيقات مبنية فوقه أو فوق مثيله.'},
+         {en:'Scaling laws',fr:'Lois d’échelle',ar:'قوانين التوسع',s:'ملاحظة تجريبية: الأداء يتحسن بانتظام يمكن التنبؤ به مع زيادة المعاملات والبيانات والحوسبة معًا.',c:'ليست قانونًا فيزيائيًا؛ هناك نقاش جدي حول حدودها (نفاد النصوص الجيدة، تكلفة الطاقة).'}],
+  qs:[{k:'mcq',q:'الحرف T في GPT يشير إلى:',o:['Training','Turing','Transformer','Technology'],a:2,w:'Generative Pre-trained Transformer.'},
+      {k:'mcq',q:'لماذا يغيّر النموذج الأساس (Foundation model) اقتصاديات القطاع؟',o:['لأنه مجاني','تكلفة ثابتة هائلة للتدريب وتكلفة حدية منخفضة لكل استعمال','لأنه يحتاج خبيرًا لكل مهمة','لأنه لا يحتاج بيانات'],a:1,w:'يُدرَّب مرة واحدة ثم يُكيَّف لآلاف المهام؛ لذلك تتركز الصناعة في قلة من الشركات.'},
+      {k:'tf',q:'ChatGPT هو أول نموذج لغوي في التاريخ، ظهر سنة 2022.',a:false,w:'ChatGPT واجهة جعلت نموذجًا موجودًا (GPT-3.5) متاحًا للجمهور؛ المصطلح من 1956 والشبكات من 1943.'},
+      {k:'mcq',q:'ماذا أعاد DeepSeek-R1 (يناير 2025) إلى النقاش الاقتصادي؟',o:['أن الحجم وحده يكفي دائمًا','أن أداءً قريبًا من الصدارة ممكن بتكلفة تدريب أقل بكثير، فتهتز الميزة المبنية على الإنفاق الضخم','أن الصين لا تملك بيانات','أن النماذج المفتوحة ممنوعة'],a:1,w:'هبطت أسهم شركات الرقائق في يوم واحد؛ الدرس: قوانين التوسع ليست قانونًا فيزيائيًا، والكفاءة تنافس الحجم.'}]},
+ {id:'s8',n:'9',t:'محطة الاقتصادي',y:'ماذا نتعلم؟',x:70,yy:156,boss:true,
+  story:[`التاريخ لا يعيد نفسه لكنه يعطي ثلاث أدوات لقراءة الحاضر. <b>دورة الضجة</b> (Hype cycle، غارتنر Gartner): الانطلاقة (Innovation trigger)، قمة التوقعات المبالغ فيها (Peak of inflated expectations: 1958، 1985، 2023؟)، وادي الخيبة (Trough of disillusionment: 1974، 1990)، منحدر التنوير (Slope of enlightenment)، هضبة الإنتاجية (Plateau of productivity). <b>مفارقة الإنتاجية</b> (Productivity paradox): سنة 1987 كتب روبرت سولو (Robert Solow) «نرى عصر الحاسوب في كل مكان إلا في إحصاءات الإنتاجية»، واستغرق الأثر عقدًا لأن المؤسسات احتاجت إلى إعادة تنظيم عملها (Reorganisation) لا شراء الآلات فقط. <b>من يربح</b>: البيانات (Data) والحوسبة (Compute) قبل الأفكار، ولهذا تسعى الدول، ومنها الجزائر، إلى بناء بنيتها الرقمية (Digital infrastructure) وبياناتها الوطنية.`],
+  lesson:'قانون أمارا (Amara’s law): نبالغ في الأثر القريب ونستهين بالأثر البعيد.',
+  terms:[{en:'Hype cycle',fr:'Cycle du hype',ar:'دورة الضجة',s:'توقعات مبالغ فيها، ثم خيبة حين لا تتحقق بسرعة، ثم استعمال واقعي منتج بعد سنوات.',c:'الخيبة لا تعني أن التقنية فاشلة؛ غالبًا تعني أن التوقيت كان خاطئًا (الإنترنت: فقاعة 2000 ثم أمازون وغوغل).'},
+         {en:'Productivity paradox',fr:'Paradoxe de la productivité',ar:'مفارقة الإنتاجية',s:'تأخر ظهور أثر تقنية عامة جديدة على الإنتاجية المقاسة لأنها تحتاج استثمارات مكملة (تنظيم، مهارات، بيانات).',c:'الكهرباء: أربعون سنة بين اختراع المولد وإعادة تصميم المصانع حولها.'}],
+  qs:[{k:'mcq',q:'مفارقة سولو (Solow paradox) تعني أن:',o:['الحواسيب تخفض الإنتاجية','أثر التقنية على الإنتاجية يتأخر حتى تُعاد هيكلة العمل','الإنتاجية لا تُقاس','التقنية بلا أثر اقتصادي'],a:1,w:'الأثر يحتاج «تقنية تنظيمية» مصاحبة، وهذا مجال عمل الاقتصادي بالذات.'},
+      {k:'mcq',q:'مستثمر ينسحب من الذكاء الاصطناعي سنة 1990 لأن «التقنية فشلت». في أي مرحلة من دورة الضجة (Hype cycle) يتصرف؟',o:['قمة التوقعات المبالغ فيها (Peak)','وادي الخيبة (Trough)','هضبة الإنتاجية (Plateau)','الانطلاقة (Trigger)'],a:1,w:'الانسحاب عند أول خيبة خطأ شائع؛ أفكار الشتاء هي التي نجحت لاحقًا.'},
+      {k:'multi',q:'مؤسسة جزائرية تريد الاستثمار في الذكاء الاصطناعي التوليدي سنة 2026. اختر النصائح الثلاث المنسجمة مع دروس التاريخ:',o:['استثمر في حالات استعمال محددة بمكسب قابل للقياس','خصص ميزانية لإعادة تنظيم العمل والتكوين والبيانات','انسحب عند أول خيبة','ابدأ صغيرًا وقس الأثر قبل التوسع','اشترِ أكبر نموذج لأن الحجم يكفي دائمًا'],a:[0,1,3],w:'قوانين التوسع لها حدود، والخيبة جزء من الدورة لا نهايتها.'}]},
+ {id:'s9',n:'★',t:'خرافة أم حقيقة؟',y:'محطة إضافية',x:40,yy:174,bonus:true,
+  story:[`ست عبارات يرددها كثيرون. قرر: خرافة أم حقيقة؟ كل إجابة صحيحة تضيف نقاطًا، وهذه المحطة لا تؤثر في فتح المحطات.`],
+  terms:[],
+  qs:[{k:'tf',q:'الذكاء الاصطناعي (AI) اختُرع سنة 2022 مع ChatGPT.',a:false,w:'المصطلح من دارتموث 1956 والشبكات العصبية (Neural networks) من 1943.'},
+      {k:'tf',q:'الشبكات العصبية (Neural networks) فكرة حديثة.',a:false,w:'البرسبترون (Perceptron) من 1958؛ الجديد هو العمق (Depth) والبيانات والحوسبة.'},
+      {k:'tf',q:'الأنظمة الخبيرة (Expert systems) ما زالت تُستعمل في البنوك ومصالح الضرائب.',a:true,w:'منطق «إذا... فـ...» في كل بنك؛ ما فشل هو الطموح لبناء كل الذكاء بالقواعد.'},
+      {k:'tf',q:'شتاء الذكاء الاصطناعي (AI winter) يعني أن التقنية كانت وهمًا.',a:false,w:'الشتاء نتيجة وعود مبكرة؛ أفكار الشتاء الأول نجحت في 2012.'},
+      {k:'tf',q:'الحجم (Scale) وحده يكفي دائمًا لتحسين النماذج.',a:false,w:'قوانين التوسع (Scaling laws) ملاحظة تجريبية لها حدود: بيانات، طاقة، تكلفة.'},
+      {k:'tf',q:'البيانات المصنفة (Labeled data) الجيدة سبقت الخوارزمية (Algorithm) في نجاح 2012.',a:true,w:'بلا ImageNet ما كان لـ AlexNet أن تتعلم.'}]}
+];
+
+const S_EN = [
+ {id:'s0',n:'1',t:'Before the computer',y:'An old dream',x:78,yy:11,
+  story:[`The idea of a thinking machine is far older than the computer: Talos, a bronze guardian of Crete in Greek mythology; the automata of Al-Jazari in the early 13th century that poured water and played music; and Charles Babbage's Analytical Engine, about which Ada Lovelace wrote in 1843 what looks like the first program, with a remark we still debate: "The machine originates nothing; it does only what we know how to order it to perform."`,
+   `Three old ideas prepared the field: <b>reasoning is calculation</b> (Leibniz), <b>logic can be written in symbols</b> (Boole and Frege), and <b>one machine can carry out any computation</b> (Turing's universal machine, 1936). When the electronic computer arrived in the 1940s, the question was ready: can it think?`],
+  lesson:'The question came centuries before the tool; what was new in the 20th century was the machine, not the idea.',
+  terms:[{en:'Analytical Engine',fr:'Machine analytique',ar:'الآلة التحليلية',s:"Babbage's 19th-century design for a general, programmable calculating machine; never completed in his lifetime.",c:'Not an electronic computer: it was entirely mechanical.'},
+         {en:'Universal machine',fr:'Machine universelle',ar:'الآلة الشاملة',s:"Turing's 1936 idea: a single machine that can perform any computation describable in steps. The theoretical basis of every computer.",c:'Not the Turing test (1950): that is a question about intelligence, this one is about computation.'}],
+  qs:[{k:'mcq',q:'Which idea is attributed to Turing in 1936?',o:['Reasoning is calculation','Logic can be written in symbols','One machine can carry out any computation','Machines invent on their own'],a:2,w:"Turing's universal machine is the idea the computer later embodied."},
+      {k:'tf',q:'Ada Lovelace wrote that the machine can originate what it was not ordered to do.',a:false,w:'She said the opposite: the machine does only what we know how to order it to perform. That objection is still at the heart of the debate today.'}]},
+ {id:'s1',n:'2',t:'Foundations',y:'1943–1956',x:30,yy:28,
+  ev:[['1943','McCulloch & Pitts: first mathematical model of a neuron (artificial neuron)','A cell that sums inputs and outputs 1 or 0: the seed of neural networks'],['1950','Alan Turing: "Can machines think?"','A philosophical question turned into a practical test: the Turing test'],['1956','The Dartmouth Workshop: McCarthy, Minsky, Shannon, Rochester','The term "Artificial Intelligence" was born, with the promise that "every aspect of learning can be so precisely described that a machine can be made to simulate it"']],
+  lesson:'The Dartmouth organisers proposed that two months and ten researchers would be enough for significant progress. It took seventy years.',
+  terms:[{en:'Dartmouth Workshop (1956)',fr:'Conférence de Dartmouth',ar:'ورشة دارتموث',s:'A summer meeting of ten researchers at Dartmouth College, USA, regarded as the birth certificate of the field and its name.',c:'Not the first AI research (Turing and McCulloch came earlier), but the first time the field was gathered under one name.'},
+         {en:'Artificial neuron',fr:'Neurone artificiel',ar:'الخلية العصبية الاصطناعية',s:'A simple function: it takes numbers, multiplies each by a "weight", adds them up, and fires a signal if the sum passes a threshold. Thousands of them connected together form a network.',c:'A real brain cell is far more complex; the artificial one is a very simplified mathematical metaphor.'}],
+  qs:[{k:'order',q:'Put the events in order, oldest first:',o:['The Dartmouth Workshop and the birth of the term','First mathematical model of a neuron','Turing\'s paper "Can machines think?"'],a:[1,2,0],w:'1943 the neuron, 1950 Turing, 1956 Dartmouth.'},
+      {k:'mcq',q:'The term Artificial Intelligence was formally coined at:',o:["Turing's paper, 1950",'The Dartmouth Workshop, 1956','The book Perceptrons, 1969','The launch of ChatGPT, 2022'],a:1,w:'McCarthy, Minsky, Shannon and Rochester in the summer of 1956.'}]},
+ {id:'s2',n:'3',t:'The golden age',y:'1956–1974',x:72,yy:46,
+  story:[`After Dartmouth, US government funding poured in and programs appeared that looked miraculous: proving geometry theorems (Gelernter's Geometry Theorem Prover, 1959), playing checkers (Arthur Samuel's program, 1952–1959, which learned from its own games), solving algebra word problems written in English (STUDENT, Bobrow 1964). The belief took hold that intelligence = <b>manipulating symbols with logical rules</b> (symbolic reasoning), and that all that was missing was more memory.`],
+  ev:[['1958','Frank Rosenblatt: the Perceptron, the first neural network that learns','Newspapers predicted "a computer that walks, talks and sees"'],['1965','DENDRAL: the first expert system, for chemical analysis','Expert knowledge can be encoded as if–then rules'],['1966','ELIZA (Weizenbaum) imitates a psychotherapist by rephrasing what you type','People attribute understanding to a machine that has none: the ELIZA effect'],['1969','The book Perceptrons by Minsky & Papert','A single-layer network cannot learn XOR; neural-network funding dried up for two decades']],
+  lesson:"Staff asked ELIZA's designer to leave them alone with the program. Our tendency to attribute understanding and feelings to a machine that produces fluent language (the ELIZA effect) returned with ChatGPT.",
+  terms:[{en:'Symbolic AI (GOFAI)',fr:'IA symbolique',ar:'الذكاء الاصطناعي الرمزي',s:'The approach that represents knowledge as symbols and logical rules written by humans, which the computer then reasons over.',c:'Its opposite is the statistical approach: nobody writes the rule; it is extracted from data.'},
+         {en:'Perceptron',fr:'Perceptron',ar:'البرسبترون',s:'The simplest neural network: one layer of cells that learns its weights from examples by gradually correcting errors. The grandparent of all modern networks.',c:'It cannot solve anything that needs a curved boundary (such as XOR); hence the need for many layers, i.e. deep learning.'},
+         {en:'ELIZA effect',fr:'Effet ELIZA',ar:'تأثير إليزا',s:'The human tendency to attribute understanding and intentions to a program that produces fluent language.',c:"Not the program's error but the reader's; a psychological and commercial risk in the age of chatbots."}],
+  qs:[{k:'mcq',q:'What did ELIZA do when you typed "My mother doesn\'t understand me"?',o:['Analysed your feelings with a psychological model','Rephrased your sentence as a question: "Tell me more about your mother"','Searched a medical database','Learned from earlier conversations'],a:1,w:'Simple rephrasing rules, yet people attributed understanding to it.'},
+      {k:'tf',q:'In 1969 Minsky and Papert proved that a single-layer perceptron cannot learn the XOR function.',a:true,w:'True, and neural-network funding dried up for about two decades, even though the fix (multiple layers) was theoretically possible.'}]},
+ {id:'s3',n:'4',t:'The first winter',y:'1974–1980',x:28,yy:64,winter:true,
+  story:[`By the mid-1970s results fell far short of the promises. The Lighthill Report (1973) in Britain concluded that the field had produced no "major impact" and recommended cutting funding; US agencies (DARPA) followed.`,
+   `Three technical reasons: <b>combinatorial explosion</b> (what works on a small problem collapses when the number of possibilities grows), <b>lack of computing power and memory</b> (1970s computers were weaker than today's calculators), and the <b>common-sense problem</b>: to understand "the man put the glass on the table and it broke", a program must know that glasses break, not tables.`],
+  lesson:'An AI winter does not mean research stops; it means the hype and the funding stop. The foundations of what later succeeded were laid during the two winters.',
+  terms:[{en:'AI winter',fr:'Hiver de l’IA',ar:'شتاء الذكاء الاصطناعي',s:'A period in which funding and interest collapse after exaggerated promises fail to materialise. The field had two major winters (1974–1980 and 1987–1993).',c:'Investors now ask: will a third winter follow the language-model bubble?'},
+         {en:'Combinatorial explosion',fr:'Explosion combinatoire',ar:'الانفجار التوافقي',s:'The number of possibilities multiplies extremely fast as a problem grows, so methods that work on small cases become impossible on large ones.',c:'Chess has more possible games than atoms in the universe; it cannot be solved by trying every move.'}],
+  qs:[{k:'multi',q:'To cross the first winter, pick the three real causes of the funding collapse (3 answers):',o:['Combinatorial explosion','Lack of computing power and memory','The invention of the internet','The common-sense problem','Governments banned research entirely'],a:[0,1,3],w:'The internet came later, and governments cut funding but did not ban research.'},
+      {k:'mcq',q:'The Lighthill Report (1973) recommended:',o:['More funding for neural networks','Cutting AI research funding in Britain','Building a bigger computer','Launching the Fifth Generation project'],a:1,w:'It found no "major impact", and US agencies followed.'}]},
+ {id:'s4',n:'5',t:'Expert systems',y:'1980–1993',x:70,yy:82,winter:true,
+  story:[`The field returned with a modest idea: instead of imitating the whole mind, take an expert in a narrow domain and turn their expertise into hundreds of rules. Expert systems were the first AI to make money: XCON at DEC saved tens of millions of dollars a year configuring computers, and MYCIN (Stanford) suggested antibiotics with accuracy close to specialists.`,
+   `<b>Why did they collapse?</b> Writing rules is slow and expensive (the knowledge acquisition bottleneck); the systems are brittle outside their domain, do not learn from mistakes, and maintaining thousands of contradictory rules is a nightmare. With the collapse of the LISP-machine market (1987) and the failure of Japan's Fifth Generation Project, the field entered its second winter; researchers even avoided the words "artificial intelligence" and said "machine learning" instead.`],
+  lesson:'Rule-based alerts in banks ("if a withdrawal abroad exceeds the daily limit, block the card") are expert logic still among us, now combined with machine-learning models.',
+  terms:[{en:'Expert system',fr:'Système expert',ar:'النظام الخبير',s:'A program that imitates the decisions of a human expert in a narrow domain through rules written by knowledge engineers after interviewing the expert.',c:'A machine-learning system interviews no one; it learns from past records. The expert explains the decision; the statistical model usually cannot.'},
+         {en:'Knowledge base / Inference engine',fr:'Base de connaissances / Moteur d’inférence',ar:'قاعدة المعرفة / محرك الاستدلال',s:'The knowledge base is "what we know" (facts and rules); the inference engine is "how we use it" on a new case.',c:'A database stores facts only; a knowledge base also stores rules for reasoning.'}],
+  qs:[{k:'mcq',q:'"If a customer is more than 3 months late, they are in default" + "the customer is 4 months late" ⟶ "in default". This is an example of:',o:['Machine learning from data','An expert system: rule + fact + inference','A neural network','A language model'],a:1,w:'The rule was written by an expert, the fact comes from the case, and the inference engine applies it.'},
+      {k:'mcq',q:'The main reason expert systems collapsed:',o:['They learned too fast','Writing rules is costly and the systems are brittle outside their domain','They were never used commercially','Governments banned them'],a:1,w:'The knowledge acquisition bottleneck and brittleness; plus the LISP-market collapse and the Fifth Generation failure.'}]},
+ {id:'s5',n:'6',t:'The return of statistics',y:'1993–2011',x:30,yy:100,
+  story:[`In the 1990s the field quietly shifted from "how do we encode knowledge" (knowledge representation) to "how do we learn it from data". It borrowed the tools of statistics and probability and gave up philosophical ambition in favour of performance measured in numbers on standard benchmarks.`],
+  ev:[['1986','Backpropagation spreads (Rumelhart, Hinton & Williams)','XOR solved in theory with multi-layer networks; computers and data were not yet enough'],['1997','Deep Blue (IBM) beats Garry Kasparov at chess','Computing power + clever search in a closed-rule domain: calculation, not understanding'],['1998–2006','The internet, big data and the Netflix Prize for better recommendations','Data became the fuel'],['2011','Watson (IBM) wins Jeopardy! against humans','Statistical NLP reaches human level on a specific task']],
+  lesson:'Much of what companies call "AI" today is classical machine learning from this era.',
+  terms:[{en:'Backpropagation',fr:'Rétropropagation',ar:'الانتشار العكسي',s:'Compute the output error, then spread the "blame" backwards over every weight in the network and correct it slightly. Repeated millions of times, that is learning.',c:'Not an algorithm of "understanding" but a mathematical correction of weights; the network does not know why it improved.'},
+         {en:'Machine Learning era',fr:'Ère de l’apprentissage automatique',ar:'عصر التعلم الآلي',s:'Performance came to be measured on test data, and algorithms competed on standard datasets.',c:"Today's Kaggle competitions are a direct continuation of that culture."}],
+  qs:[{k:'tf',q:'Deep Blue beat Kasparov because it understood chess the way a human does.',a:false,w:'It calculated millions of positions per second with evaluation rules written by humans; it neither learned nor understood.'},
+      {k:'mcq',q:'The closest analogy for backpropagation:',o:['A student memorising the lesson by heart','A student reviewing a marked exam and adjusting their understanding on every point they got wrong','A student asking an expert and writing down their rules','A student guessing at random'],a:1,w:'The error is spread backwards over the weights and corrected gradually.'}]},
+ {id:'s6',n:'7',t:'Deep learning',y:'2012–2017',x:72,yy:118,
+  story:[`In September 2012 a network called AlexNet (Krizhevsky, Sutskever & Hinton) entered the ImageNet competition (a million images, a thousand classes) and cut the error rate from 26% to 16% in one go, while other teams fought over tenths of a point. The secret: a deep network (8 layers) trained on <b>graphics processors</b> (GPUs) with massive data. Within three years all of computer vision switched, then speech recognition, then machine translation.`],
+  ev:[['2012','AlexNet wins ImageNet','Deep learning beats every other method'],['2013','word2vec (Google)','Words become vectors (embeddings) that carry meaning'],['2014','Generative Adversarial Networks (GAN, Goodfellow)','The first convincing generated images'],['2016','AlphaGo (DeepMind) beats Go champion Lee Sedol','Reinforcement learning + deep learning'],['2017','The paper "Attention Is All You Need" (Google)','Birth of the Transformer, the basis of all language models']],
+  lesson:'The ideas (the neural network, backpropagation) had existed for decades; what decided the outcome was labelled data and compute.',
+  terms:[{en:'ImageNet',fr:'ImageNet',ar:'قاعدة ImageNet',s:'Over 14 million hand-labelled images created by Fei-Fei Li; its annual competition showed the superiority of deep learning.',c:'Not an algorithm but a dataset; the value was in the huge human effort of labelling.'},
+         {en:'Reinforcement Learning',fr:'Apprentissage par renforcement',ar:'التعلم بالتعزيز',s:'The machine learns by trial and error: it tries an action, gets a reward or a penalty, and adjusts its behaviour to maximise reward.',c:'Supervised learning learns from pre-labelled examples; reinforcement learning learns from the results of its own actions.'}],
+  qs:[{k:'mcq',q:'What did AlexNet prove in 2012?',o:['That single-layer networks are enough','That deep networks with massive data and GPUs win by a wide margin','That computers understand images like humans','That expert systems are better'],a:1,w:'It cut the error from 26% to 16% in one go.'},
+      {k:'order',q:'Put in order, oldest first:',o:['The Transformer paper "Attention Is All You Need"','AlphaGo beats Lee Sedol','AlexNet wins ImageNet'],a:[2,1,0],w:'2012 AlexNet, 2016 AlphaGo, 2017 the Transformer.'}]},
+ {id:'s7',n:'8',t:'Transformers and generation',y:'2017–2026',x:30,yy:136,
+  story:[`The Transformer reads the whole sentence at once and computes, for every word, its "attention" to the other words, and it trains in parallel on enormous text. From it came large language models (LLMs): the more size, data and compute, the more regularly performance improved (scaling laws). Then all of this left the labs and reached the public.`],
+  ev:[['2018','BERT (Google) and GPT-1 (OpenAI)','Pre-trained models that are fine-tuned for any task'],['2020','GPT-3: 175 billion parameters','Convincing text from a few examples (few-shot)'],['2022','Stable Diffusion, DALL·E 2 and Midjourney','Text-to-image for everyone'],['November 2022','ChatGPT (OpenAI) launches','100 million users in two months: the fastest adoption of an application in history'],['2023','GPT-4, Claude, Gemini and Llama (open-weights)','Multimodal models and the first comprehensive regulation (EU AI Act)'],['2024','Agents and reasoning models','Models that "think" before answering, plan, execute multi-step tasks and use tools'],['January 2025','DeepSeek-R1 from China','An open reasoning model at far lower training cost; it shook financial markets and reopened the debate on scaling laws and cost'],['2025','Agents use the computer and the browser','The EU AI Act starts to apply: prohibitions (February), then general-purpose model obligations (August)'],['2026','A new generation of models and enterprise agents','The question moves from "what can the machine do?" to "who oversees it, and who is accountable?" (human oversight, Lecture 13)']],
+  lesson:'An expert system was one system per task; a foundation model is one model for countless tasks: a huge fixed cost and a low marginal cost.',
+  terms:[{en:'Transformer',fr:'Transformeur',ar:'المحوّل',s:'A 2017 architecture based on "attention", which decides which parts of the input matter most for understanding each part. The T in GPT.',c:'To understand "bank" in "I sat on the river bank", the model attends to "river" and understands it is not a financial bank.'},
+         {en:'Foundation model',fr:'Modèle de fondation',ar:'النموذج الأساس',s:'A huge model trained once on massive general data, then adapted to thousands of tasks without retraining from scratch.',c:"GPT-4 is a foundation model; ChatGPT and your bank's chatbot are applications built on it or on its peers."},
+         {en:'Scaling laws',fr:'Lois d’échelle',ar:'قوانين التوسع',s:'An empirical observation: performance improves predictably as parameters, data and compute grow together.',c:'Not a law of physics; there is serious debate about its limits (running out of good text, energy cost).'}],
+  qs:[{k:'mcq',q:'The T in GPT stands for:',o:['Training','Turing','Transformer','Technology'],a:2,w:'Generative Pre-trained Transformer.'},
+      {k:'mcq',q:'Why does a foundation model change the economics of the sector?',o:['Because it is free','A huge fixed training cost and a low marginal cost per use','Because it needs an expert for every task','Because it needs no data'],a:1,w:'Trained once, adapted to thousands of tasks; hence the industry concentrates in a few companies.'},
+      {k:'tf',q:'ChatGPT was the first language model in history, released in 2022.',a:false,w:'ChatGPT was an interface that made an existing model (GPT-3.5) available to the public; the term dates from 1956 and neural networks from 1943.'},
+      {k:'mcq',q:'What did DeepSeek-R1 (January 2025) bring back into the economic debate?',o:['That scale alone is always enough','That near-frontier performance is possible at far lower training cost, so an advantage built on huge spending is fragile','That China has no data','That open models are banned'],a:1,w:'Chip-maker shares fell in a single day; the lesson: scaling laws are not physics, and efficiency competes with size.'}]},
+ {id:'s8',n:'9',t:"The economist's station",y:'What do we learn?',x:70,yy:156,boss:true,
+  story:[`History does not repeat itself, but it gives three tools for reading the present. The <b>hype cycle</b> (Gartner): innovation trigger, peak of inflated expectations (1958, 1985, 2023?), trough of disillusionment (1974, 1990), slope of enlightenment, plateau of productivity. The <b>productivity paradox</b>: in 1987 Robert Solow wrote "you can see the computer age everywhere but in the productivity statistics", and the effect took a decade because firms had to reorganise their work, not just buy machines. <b>Who wins</b>: data and compute before ideas, which is why countries, including Algeria, are building digital infrastructure and national data.`],
+  lesson:"Amara's law: we overestimate the short-term effect and underestimate the long-term one.",
+  terms:[{en:'Hype cycle',fr:'Cycle du hype',ar:'دورة الضجة',s:'Inflated expectations, then disappointment when they do not materialise quickly, then realistic productive use years later.',c:'Disappointment does not mean the technology failed; usually it means the timing was wrong (the internet: the 2000 bubble, then Amazon and Google).'},
+         {en:'Productivity paradox',fr:'Paradoxe de la productivité',ar:'مفارقة الإنتاجية',s:'The delayed appearance of a new general technology in measured productivity, because it needs complementary investment (organisation, skills, data).',c:'Electricity: forty years between the generator and the redesign of factories around it.'}],
+  qs:[{k:'mcq',q:"Solow's paradox means that:",o:['Computers reduce productivity','The productivity effect of a technology is delayed until work is restructured','Productivity cannot be measured','Technology has no economic effect'],a:1,w:'The effect needs complementary "organisational technology", which is exactly the economist\'s job.'},
+      {k:'mcq',q:'An investor withdraws from AI in 1990 because "the technology failed". In which phase of the hype cycle is he acting?',o:['Peak of inflated expectations','Trough of disillusionment','Plateau of productivity','Innovation trigger'],a:1,w:'Withdrawing at the first disappointment is a common mistake; the ideas of the winter are the ones that succeeded later.'},
+      {k:'multi',q:'An Algerian firm wants to invest in generative AI in 2026. Choose the three pieces of advice consistent with the lessons of history:',o:['Invest in specific use cases with measurable gains','Budget for reorganising work, training and data','Withdraw at the first disappointment','Start small and measure the effect before scaling','Buy the biggest model, because scale is always enough'],a:[0,1,3],w:'Scaling laws have limits, and disappointment is part of the cycle, not its end.'}]},
+ {id:'s9',n:'★',t:'Myth or fact?',y:'Bonus station',x:40,yy:174,bonus:true,
+  story:[`Six claims people repeat. Decide: myth or fact? Each correct answer adds points; this station does not affect unlocking.`],
+  terms:[],
+  qs:[{k:'tf',q:'AI was invented in 2022 with ChatGPT.',a:false,w:'The term dates from Dartmouth 1956 and neural networks from 1943.'},
+      {k:'tf',q:'Neural networks are a recent idea.',a:false,w:'The perceptron dates from 1958; what is new is depth, data and compute.'},
+      {k:'tf',q:'Expert systems are still used in banks and tax offices.',a:true,w:'If–then logic is in every bank; what failed was the ambition to build all of intelligence from rules.'},
+      {k:'tf',q:'An AI winter means the technology was an illusion.',a:false,w:'A winter follows premature promises; the ideas of the first winter succeeded in 2012.'},
+      {k:'tf',q:'Scale alone is always enough to improve models.',a:false,w:'Scaling laws are an empirical observation with limits: data, energy, cost.'},
+      {k:'tf',q:'Good labelled data came before the algorithm in the 2012 breakthrough.',a:true,w:'Without ImageNet, AlexNet could not have learned.'}]}
+];
+
+const UI={
+ ar:{eyebrow:'مقدمة في الذكاء الاصطناعي',title:'رحلة تاريخ الذكاء الاصطناعي: من الحلم إلى ChatGPT',byline:'من إعداد الدكتورة عبدوس سميرة',
+  sub:'تسع محطات على طريق يمتد من 1943 إلى 2026. في كل محطة: قصة قصيرة، مصطلحات بالإنجليزية والفرنسية والعربية، وتحدٍّ يفتح المحطة التالية. اعبر الشتاءين واصل محطة الاقتصادي.',
+  nameLabel:'اكتب اسمك لتبدأ الرحلة (المحطات مقفلة حتى تكتبه)',namePh:'مثال: ياسمين بن علي',start:'ابدأ',points:'نقاط',stars:'نجوم من 30',stations:'محطات',howTitle:'كيف تلعب؟',
+  how:['اضغط المحطة المضيئة. اقرأ «القصة» ثم اقلب بطاقات «المصطلحات».','في «التحدي» أجب عن كل الأسئلة. الإجابة الصحيحة من أول محاولة = 10 نقاط، من الثانية = 5. الخطأ يعرض الشرح، ويمكنك المحاولة مجددًا.','النجوم: ثلاث إذا أصبت كل الأسئلة من أول مرة، اثنتان مع خطأ واحد، واحدة فيما عدا ذلك. تقدمك يُحفظ على هذا الجهاز فقط.'],
+  zone:'❄ منطقة الشتاءين',locked:'أكمل المحطة السابقة أولًا',needName:'اكتب اسمك أولًا لتبدأ الرحلة',lockedAria:'(مقفلة)',foot:'د. سميرة عبدوس · جامعة أمحمد بوقرة بومرداس · المحتوى من مطبوعة المحاضرة 2',reset:'إعادة الرحلة من البداية',resetArm:'اضغط مرة أخرى للتأكيد: سيُمحى تقدمك',
+  station:'المحطة',close:'إغلاق ✕',tStory:'القصة',tTerms:'المصطلحات',tQuiz:'التحدي',lesson:'الدرس:',toTerms:'إلى المصطلحات ←',toQuiz:'إلى التحدي ←',
+  termsHint:'اضغط البطاقة لقلبها: الوجه الأمامي الاسم، والخلفي الشرح البسيط وما لا تخلط بينه.',simple:'بكلمات بسيطة:',confuse:'لا تخلط بينه وبين:',
+  kinds:{mcq:'اختيار من متعدد',tf:'صح أم خطأ',order:'رتّب',multi:'اختر كل ما ينطبق'},tfOpts:['صحيح','خطأ'],check:'تحقق',clear:'مسح الترتيب',
+  correct:'صحيح',wrong:'ليس صحيحًا.',retry:'حاول مرة أخرى.',wellDone:'أحسنت!',opened:'المحطة مفتوحة',bonusDone:'نقاط إضافية أُضيفت إلى رصيدك.',nextOpen:'المحطة التالية صارت متاحة على الخريطة.',endRoad:'وصلت إلى نهاية الطريق. انظر إلى خلاصة الرحلة أسفل الخريطة.',back:'العودة إلى الخريطة',
+  greets:['أهلًا بك في الرحلة. سبعون سنة من الوعود والخيبات تنتظرك، وأول محطة تبدأ قبل اختراع الحاسوب.','مرحبًا. تذكّر القاعدة الوحيدة: الخطأ ليس عقوبة، بل شرح يظهر فورًا ومحاولة أخرى.','سعيد بوجودك. اعبر الشتاءين ولا تنسحب عند أول خيبة؛ هذا بالضبط ما يعلّمه التاريخ.'],
+  hello:'مرحبًا',resume:(d,s)=>`واصل من حيث توقفت: أكملت ${d} من 10 محطات برصيد ${s} نقطة.`,chgName:'تغيير الاسم',
+  finalTitle:(n,sc,st)=>`${n?n+'، ':''}وصلت إلى نهاية الطريق: ${sc} نقطة · ${st} نجمة`,finalIntro:'سبعون سنة في خمس جمل، لتراجعها قبل الأعمال الموجهة:',finalH:['المرحلة','الجملة التي تحفظها'],
+  finalRows:[['1943–1956','وُلد الحقل في دارتموث (Dartmouth) 1956 على فكرة أن الذكاء معالجة رموز بقواعد (Symbolic AI)؛ وسبقته الخلية الاصطناعية (Artificial neuron) واختبار تورينغ (Turing test).'],['1956–1980','العصر الذهبي وعد بأكثر مما حقق، فجاء الشتاء الأول (First AI winter): انفجار توافقي (Combinatorial explosion)، حوسبة ضعيفة، معرفة عامة (Common sense) لا تُحصى.'],['1980–1993','الأنظمة الخبيرة (Expert systems) نجحت تجاريًا في مجالات ضيقة ثم انهارت لهشاشتها (Brittleness) وتكلفة قواعدها: الشتاء الثاني.'],['1993–2026','التحول إلى التعلم من البيانات (Machine learning)، ثم انفجار 2012 (بيانات + GPU + شبكات عميقة Deep learning)، ثم المحوّل (Transformer) 2017 وChatGPT 2022، ثم النماذج المستدلة (Reasoning models) والوكلاء (Agents) وصدمة التكلفة (DeepSeek 2025) وصولًا إلى 2026.'],['دروس الاقتصادي','دورة الضجة (Hype cycle)، مفارقة الإنتاجية (Productivity paradox): تأخر الأثر حتى تُعاد هيكلة العمل، ومن يملك البيانات (Data) والحوسبة (Compute) يملك الميزة.']],
+  finalQ:'سؤال للنقاش في الحصة: أين تضع الذكاء الاصطناعي التوليدي اليوم على دورة الضجة، ولماذا؟'},
+ en:{eyebrow:'Introduction to Artificial Intelligence',title:'A Journey Through AI History: From the Dream to ChatGPT',byline:'Prepared by Dr. Samira Abdous',
+  sub:'Nine stations on a road from 1943 to 2026. At each station: a short story, terms in English, French and Arabic, and a challenge that unlocks the next station. Cross the two winters and reach the economist\'s station.',
+  nameLabel:'Type your name to start the journey (stations stay locked until you do)',namePh:'e.g. Yasmine Benali',start:'Start',points:'points',stars:'stars out of 30',stations:'stations',howTitle:'How to play',
+  how:['Tap the glowing station. Read the "Story", then flip the "Terms" cards.','In the "Challenge", answer every question. Correct on the first try = 10 points, on the second = 5. A wrong answer shows the explanation and you can try again.','Stars: three if every question is right first time, two with one miss, one otherwise. Your progress is saved on this device only.'],
+  zone:'❄ The two winters',locked:'Complete the previous station first',needName:'Type your name first to start the journey',lockedAria:'(locked)',foot:'Dr. Samira Abdous · University M\'hamed Bougara of Boumerdes · Content from the Lecture 2 handout',reset:'Restart the journey',resetArm:'Tap again to confirm: your progress will be erased',
+  station:'Station',close:'Close ✕',tStory:'Story',tTerms:'Terms',tQuiz:'Challenge',lesson:'Lesson:',toTerms:'To the terms →',toQuiz:'To the challenge →',
+  termsHint:'Tap a card to flip it: the front shows the name, the back the plain explanation and what not to confuse it with.',simple:'In plain words:',confuse:'Do not confuse with:',
+  kinds:{mcq:'Multiple choice',tf:'True or false',order:'Put in order',multi:'Select all that apply'},tfOpts:['True','False'],check:'Check',clear:'Clear order',
+  correct:'Correct',wrong:'Not quite.',retry:'Try again.',wellDone:'Well done!',opened:'Station complete',bonusDone:'Bonus points added to your score.',nextOpen:'The next station is now open on the map.',endRoad:'You reached the end of the road. See the journey summary below the map.',back:'Back to the map',
+  greets:['Welcome to the journey. Seventy years of promises and disappointments await you, and the first station starts before the computer was invented.','Hello. Remember the only rule: a mistake is not a penalty, it is an explanation that appears at once and another try.','Glad you are here. Cross the two winters and do not quit at the first disappointment; that is exactly what history teaches.'],
+  hello:'Welcome',resume:(d,s)=>`Pick up where you left off: ${d} of 10 stations done, ${s} points.`,chgName:'Change name',
+  finalTitle:(n,sc,st)=>`${n?n+', ':''}you reached the end of the road: ${sc} points · ${st} stars`,finalIntro:'Seventy years in five sentences, to review before the tutorial:',finalH:['Period','The sentence to remember'],
+  finalRows:[['1943–1956','The field was born at Dartmouth in 1956 on the idea that intelligence is symbol manipulation by rules (Symbolic AI); the artificial neuron and the Turing test came before it.'],['1956–1980','The golden age promised more than it delivered, so the first AI winter came: combinatorial explosion, weak computing, and common sense that cannot be enumerated.'],['1980–1993','Expert systems succeeded commercially in narrow domains, then collapsed from brittleness and the cost of their rules: the second winter.'],['1993–2026','The shift to learning from data (machine learning), then the 2012 explosion (data + GPUs + deep networks), then the Transformer in 2017 and ChatGPT in 2022, then reasoning models, agents and the cost shock (DeepSeek 2025), up to 2026.'],['Economist\'s lessons','The hype cycle; the productivity paradox (the effect is delayed until work is restructured); and whoever owns data and compute owns the advantage.']],
+  finalQ:'Question for class discussion: where would you place generative AI on the hype cycle today, and why?'}
+};
+const DATA={ar:S_AR,en:S_EN};
+let lang='ar';
+function T(){return UI[lang];}
+function S_(){return DATA[lang];}
+const AB={ar:['أ','ب','ج','د','هـ'],en:['A','B','C','D','E']};
+
+// ---------- state ----------
+const KEY='ai-history-journey-v1';
+let st={done:{},stars:{},score:0,best:{},name:''};
+function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);if(o&&typeof o==='object')st=Object.assign(st,o);}const l=localStorage.getItem(KEY+'-lang');if(l==='en'||l==='ar')lang=l;}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(st));localStorage.setItem(KEY+'-lang',lang);}catch(e){}}
+function unlockedIndex(){const S=S_();let i=0;while(i<S.length-1&&st.done[S[i].id])i++;return i;}
+function isUnlocked(i){return S_()[i].bonus?true:i<=unlockedIndex();}
+
+// ---------- language ----------
+function applyLang(){
+  const t=T();
+  document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';document.body.style.direction=lang==='ar'?'rtl':'ltr';
+  document.title=lang==='ar'?'رحلة تاريخ الذكاء الاصطناعي':'A Journey Through AI History';
+  document.querySelectorAll('[data-ui]').forEach(el=>{const k=el.dataset.ui;if(typeof t[k]==='string')el.textContent=t[k];});
+  document.getElementById('studentName').placeholder=t.namePh;
+  document.getElementById('howList').innerHTML=t.how.map(x=>`<li>${x}</li>`).join('');
+  document.querySelectorAll('.langbar button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lang===lang)));
+}
+document.querySelectorAll('.langbar button').forEach(b=>b.addEventListener('click',()=>{lang=b.dataset.lang;save();applyLang();renderWelcome();renderMap();if(cur!==null)renderPanel();}));
+
+// ---------- map ----------
+const map=document.getElementById('map');
+function pathD(pts){let d=`M${pts[0].x},${pts[0].y}`;for(let i=1;i<pts.length;i++){const p=pts[i-1],q=pts[i];const c=(p.y+q.y)/2;d+=` C${p.x},${c} ${q.x},${c} ${q.x},${q.y}`;}return d;}
+function renderMap(){
+  const S=S_(),t=T();
+  map.querySelectorAll('.st,.zone').forEach(e=>e.remove());
+  const main=S.filter(s=>!s.bonus), pts=main.map(s=>({x:100-s.x,y:s.yy}));
+  document.getElementById('road').setAttribute('d',pathD(pts));
+  const u=unlockedIndex(); const donePts=pts.slice(0,Math.max(1,Math.min(u+1,pts.length)));
+  document.getElementById('roadDone').setAttribute('d',donePts.length>1?pathD(donePts):'');
+  const z=document.createElement('div');z.className='zone';z.style.top='29%';z.style.height='21%';z.innerHTML=`<span>${t.zone}</span>`;map.appendChild(z);
+  S.forEach((s,i)=>{
+    const b=document.createElement('button');b.type='button';b.className='st';
+    const unlocked=isUnlocked(i), done=!!st.done[s.id];
+    const named=!!(st.name||'').trim();
+    if(!unlocked||!named)b.classList.add('locked');else if(done)b.classList.add('done');else if(i===u||s.bonus)b.classList.add('cur');
+    if(s.bonus)b.classList.add('bonus');
+    b.style.right=s.x+'%';b.style.top=(s.yy/184*100)+'%';
+    const stars=st.stars[s.id]?'★'.repeat(st.stars[s.id]):'';
+    b.innerHTML=`<span class="dot">${unlocked&&named?s.n:'🔒'}</span><span class="lbl">${s.t}</span><span class="yrs">${s.y}</span><span class="stars">${stars}</span>`;
+    b.setAttribute('aria-label',`${s.t} ${s.y}${unlocked?'':' '+t.lockedAria}`);
+    b.addEventListener('click',()=>{ if(!(st.name||'').trim()){toast(b,t.needName);const inp=document.getElementById('studentName');inp.focus();inp.scrollIntoView({block:'center',behavior:'smooth'});return;} if(unlocked)open(i); else toast(b,t.locked); });
+    map.appendChild(b);
+  });
+  const doneN=Object.keys(st.done).length, starsN=Object.values(st.stars).reduce((a,b)=>a+b,0);
+  document.getElementById('hScore').textContent=st.score;
+  document.getElementById('hStars').textContent=starsN;
+  document.getElementById('hDone').textContent=doneN+' / 10';
+  document.getElementById('bar').style.width=(doneN/10*100)+'%';
+  renderFinal();
+}
+function toast(el,msg){const old=el.querySelector('.tt');if(old)old.remove();const t=document.createElement('span');t.className='lbl tt';t.textContent=msg;t.style.color='var(--bad)';el.appendChild(t);setTimeout(()=>t.remove(),1600);}
+
+// ---------- panel ----------
+const panel=document.getElementById('panel'), sheet=document.getElementById('sheet');
+let cur=null, tab='story', run=null;
+function open(i){cur=i;tab='story';run={answered:{},tries:{},flips:{}};renderPanel();panel.hidden=false;sheet.scrollTop=0;sheet.querySelector('.close').focus();}
+function closeP(){panel.hidden=true;cur=null;renderMap();}
+panel.addEventListener('click',e=>{if(e.target===panel)closeP();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)closeP();});
+function termFront(x){return `<span class="en">${x.en}</span><span class="fr">${x.fr}</span><span class="ar">${x.ar}</span>`;}
+function renderPanel(){
+  const S=S_(),t=T(),s=S[cur]; const termsOk=s.terms.length>0;
+  let h=`<div class="head"><div><span class="eyebrow">${t.station} ${s.n} · ${s.y}</span><h2 id="pTitle">${s.t}</h2></div><button class="close" type="button" id="closeBtn">${t.close}</button></div>
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="${tab==='story'}" data-t="story">${t.tStory}</button>
+    <button role="tab" aria-selected="${tab==='terms'}" data-t="terms" ${termsOk?'':'disabled'}>${t.tTerms} (${s.terms.length})</button>
+    <button role="tab" aria-selected="${tab==='quiz'}" data-t="quiz">${t.tQuiz} (${s.qs.length})</button>
+  </div>`;
+  if(tab==='story'){
+    h+=`<div class="card">${(s.story||[]).map(p=>`<p>${p}</p>`).join('')}${s.ev?`<div>${s.ev.map(e=>`<div class="ev"><b>${e[0]}</b><div>${e[1]}<small>${e[2]}</small></div></div>`).join('')}</div>`:''}</div>`;
+    if(s.lesson)h+=`<div class="lesson"><b>${t.lesson}</b> ${s.lesson}</div>`;
+    h+=`<div class="row"><button class="btn" type="button" data-go="${termsOk?'terms':'quiz'}">${termsOk?t.toTerms:t.toQuiz}</button></div>`;
+  } else if(tab==='terms'){
+    h+=`<p class="hint">${t.termsHint}</p><div class="terms">`+
+      s.terms.map((x,k)=>`<button class="term" type="button" data-flip="${k}" aria-expanded="${!!run.flips[k]}">${termFront(x)}${run.flips[k]?`<div class="back"><p><b>${t.simple}</b> ${x.s}</p><p><b>${t.confuse}</b> ${x.c}</p></div>`:''}</button>`).join('')+
+      `</div><div class="row"><button class="btn" type="button" data-go="quiz">${t.toQuiz}</button></div>`;
+  } else {
+    h+=s.qs.map((q,qi)=>renderQ(q,qi)).join('');
+    const all=s.qs.every((q,qi)=>run.answered[qi]);
+    if(all){const stars=starsFor(s);h+=`<div class="result"><b>${s.bonus?t.wellDone:t.opened}</b><span class="s">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</span><div>${s.bonus?t.bonusDone:(cur<S.length-2?t.nextOpen:t.endRoad)}</div></div><div class="row"><button class="btn" type="button" id="backMap">${t.back}</button></div>`;}
+  }
+  sheet.innerHTML=h;
+  sheet.querySelector('#closeBtn').addEventListener('click',closeP);
+  sheet.querySelectorAll('[role=tab]').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.t;renderPanel();}));
+  sheet.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.go;renderPanel();sheet.scrollTop=0;}));
+  sheet.querySelectorAll('[data-flip]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.flip;run.flips[k]=!run.flips[k];renderPanel();}));
+  const bm=sheet.querySelector('#backMap');if(bm)bm.addEventListener('click',closeP);
+  bindQ();
+}
+function starsFor(s){let miss=0;s.qs.forEach((q,qi)=>{if((run.tries[qi]||1)>1)miss++;});return miss===0?3:miss===1?2:1;}
+function renderQ(q,qi){
+  const t=T(),L=AB[lang]; const done=run.answered[qi]; const kind=t.kinds[q.k];
+  let body='';
+  if(q.k==='mcq'||q.k==='tf'){
+    const opts=q.k==='tf'?t.tfOpts:q.o;
+    body=`<div class="opts">${opts.map((o,oi)=>{let cls='opt';if(done){const correct=q.k==='tf'?(oi===(q.a?0:1)):oi===q.a;if(correct)cls+=' ok';else if(run.last&&run.last[qi]===oi)cls+=' bad';}return `<button class="${cls}" type="button" data-q="${qi}" data-o="${oi}" ${done?'disabled':''}><span class="k">${L[oi]}</span><span>${o}</span></button>`;}).join('')}</div>`;
+  } else if(q.k==='multi'){
+    const sel=run.sel&&run.sel[qi]||[];
+    body=`<div class="opts">${q.o.map((o,oi)=>{let cls='opt';if(sel.includes(oi))cls+=' sel';if(done&&q.a.includes(oi))cls=cls.replace('sel','')+' ok';return `<button class="${cls}" type="button" data-q="${qi}" data-m="${oi}" ${done?'disabled':''}><span class="k">${sel.includes(oi)?'✓':'○'}</span><span>${o}</span></button>`;}).join('')}</div>
+    <div class="row"><button class="btn" type="button" data-check="${qi}" ${done||sel.length!==q.a.length?'disabled':''}>${t.check} (${sel.length}/${q.a.length})</button></div>`;
+  } else if(q.k==='order'){
+    const seq=run.seq&&run.seq[qi]||[];
+    body=`<div class="opts ord">${q.o.map((o,oi)=>{const pos=seq.indexOf(oi);let cls='opt';if(pos>=0)cls+=' sel';if(done)cls+=' ok';return `<button class="${cls}" type="button" data-q="${qi}" data-s="${oi}" ${done?'disabled':''}><span class="k">${pos>=0?pos+1:''}</span><span>${o}</span></button>`;}).join('')}</div>
+    <div class="row"><button class="btn ghost" type="button" data-clear="${qi}" ${done?'disabled':''}>${t.clear}</button><button class="btn" type="button" data-check="${qi}" ${done||seq.length!==q.o.length?'disabled':''}>${t.check}</button></div>`;
+  }
+  const fb=run.fb&&run.fb[qi]?`<div class="fb ${run.fb[qi].ok?'ok':'bad'}">${run.fb[qi].msg}</div>`:'';
+  return `<div class="q"><span class="kind">${kind} · ${qi+1}/${S_()[cur].qs.length}</span><p class="qt">${q.q}</p>${body}${fb}</div>`;
+}
+function bindQ(){
+  sheet.querySelectorAll('[data-o]').forEach(b=>b.addEventListener('click',()=>{const qi=+b.dataset.q,oi=+b.dataset.o,q=S_()[cur].qs[qi];const ok=q.k==='tf'?(oi===(q.a?0:1)):oi===q.a;run.last=run.last||{};run.last[qi]=oi;grade(qi,ok,q);}));
+  sheet.querySelectorAll('[data-m]').forEach(b=>b.addEventListener('click',()=>{const qi=+b.dataset.q,oi=+b.dataset.m;run.sel=run.sel||{};const a=run.sel[qi]||[];const j=a.indexOf(oi);if(j>=0)a.splice(j,1);else a.push(oi);run.sel[qi]=a;renderPanel();}));
+  sheet.querySelectorAll('[data-s]').forEach(b=>b.addEventListener('click',()=>{const qi=+b.dataset.q,oi=+b.dataset.s;run.seq=run.seq||{};const a=run.seq[qi]||[];if(!a.includes(oi))a.push(oi);run.seq[qi]=a;renderPanel();}));
+  sheet.querySelectorAll('[data-clear]').forEach(b=>b.addEventListener('click',()=>{const qi=+b.dataset.clear;run.seq=run.seq||{};run.seq[qi]=[];renderPanel();}));
+  sheet.querySelectorAll('[data-check]').forEach(b=>b.addEventListener('click',()=>{const qi=+b.dataset.check,q=S_()[cur].qs[qi];let ok;if(q.k==='multi'){const a=(run.sel[qi]||[]).slice().sort();ok=a.length===q.a.length&&a.every((v,i)=>v===q.a.slice().sort()[i]);}else{const a=run.seq[qi]||[];ok=a.length===q.a.length&&a.every((v,i)=>v===q.a[i]);if(!ok){run.seq[qi]=[];}}if(!ok&&q.k==='multi')run.sel[qi]=[];grade(qi,ok,q);}));
+}
+function grade(qi,ok,q){
+  const t=T();
+  run.tries[qi]=(run.tries[qi]||0)+1; run.fb=run.fb||{};
+  if(ok){
+    const pts=run.tries[qi]===1?10:5; run.answered[qi]=true;
+    run.fb[qi]={ok:true,msg:`${t.correct} (+${pts}). ${q.w}`};
+    const s=S_()[cur]; const already=st.done[s.id];
+    if(!already){st.score+=pts;}
+    if(s.qs.every((x,i)=>run.answered[i])&&!already){st.done[s.id]=true;st.stars[s.id]=starsFor(s);}
+    save();
+  } else {
+    run.fb[qi]={ok:false,msg:`${t.wrong} ${q.w} ${t.retry}`};
+  }
+  renderPanel();
+  const el=sheet.querySelectorAll('.q')[qi];if(el)el.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+
+// ---------- final ----------
+function renderFinal(){
+  const t=T(); const f=document.getElementById('final'); const mainDone=S_().filter(s=>!s.bonus).every(s=>st.done[s.id]);
+  if(!mainDone){f.classList.remove('show');f.innerHTML='';return;}
+  const starsN=Object.values(st.stars).reduce((a,b)=>a+b,0);
+  f.classList.add('show');
+  f.innerHTML=`<h2>${t.finalTitle(st.name,st.score,starsN)}</h2><p>${t.finalIntro}</p>
+  <table><tr><th>${t.finalH[0]}</th><th>${t.finalH[1]}</th></tr>${t.finalRows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table>
+  <p class="hint" style="margin-top:8px">${t.finalQ}</p>`;
+}
+
+// ---------- welcome ----------
+function renderWelcome(){
+  const t=T(); const f=document.getElementById('nameForm'), g=document.getElementById('greet');
+  const n=(st.name||'').trim();
+  if(n){const doneN=Object.keys(st.done).length; const msg=doneN?t.resume(doneN,st.score):t.greets[n.length%t.greets.length];
+    g.innerHTML=`<p><b>${t.hello} ${n}</b><br>${msg}</p><button type="button" id="chgName">${t.chgName}</button>`;g.hidden=false;f.hidden=true;
+    document.getElementById('chgName').addEventListener('click',()=>{st.name='';save();renderWelcome();renderMap();document.getElementById('studentName').focus();});
+  } else {g.hidden=true;f.hidden=false;}
+}
+document.getElementById('nameForm').addEventListener('submit',e=>{e.preventDefault();const v=document.getElementById('studentName').value.trim();if(!v)return;st.name=v;save();renderWelcome();renderMap();});
+
+document.getElementById('reset').addEventListener('click',()=>{
+  const t=T(),b=document.getElementById('reset');
+  if(b.dataset.arm){st={done:{},stars:{},score:0,best:{},name:st.name};save();b.textContent=t.reset;delete b.dataset.arm;renderWelcome();renderMap();}
+  else{b.dataset.arm='1';b.textContent=t.resetArm;setTimeout(()=>{delete b.dataset.arm;b.textContent=t.reset;},4000);}
+});
+
+function start(data){ if(data&&data.st){st=data.st;if(data.lang)lang=data.lang;} else load(); applyLang(); renderWelcome(); renderMap(); }
+if(window.claude?.hot?.snapshot) window.claude.hot.snapshot(()=>({st,lang}));
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+</script>
+</body>
+</html>
