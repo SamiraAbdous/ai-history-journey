@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>داخل النموذج اللغوي</title>
+<meta name="description" content="محاكي تفاعلي: التنبؤ بالرمز التالي، درجة الحرارة، الانتباه، والهلوسة — لفهم كيف تعمل النماذج اللغوية الكبيرة. من إعداد د. سميرة عبدوس.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Changa:wght@600;700;800&family=Tajawal:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="../../assets/app.css">
+<style>:root{--accent:#B5452B;--accent-soft:#F8E3DD}@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--accent:#F08A6B;--accent-soft:#3F2420}}
+.prefix{font-family:var(--display);font-size:20px;color:var(--ink);margin:6px 0}
+.prefix .out{color:var(--accent);border-bottom:2px solid var(--accent)}
+.word{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:4px 10px;font-size:16px;cursor:pointer;font-family:var(--body);color:var(--fg)}
+.word.sel{background:var(--ink);color:var(--paper);border-color:var(--ink)}.word.ok{background:var(--ok-soft);border-color:var(--ok)}.word.bad{background:var(--bad-soft);border-color:var(--bad)}
+.gen{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+</style>
+</head>
+<body>
+<script src="../../assets/engine.js"></script>
+<script src="../../assets/widgets.js"></script>
+<script>
+(function(){
+  /* next-token simulator */
+  Course.widget('nexttoken',function(el,data,ctx){
+    const L=ctx.L,ar=ctx.lang==='ar';let pi=0,T=0.7,hist=[],temps=new Set();
+    const lab=ar?{pick:'اختر بداية جملة',toks:'الرموز (Tokens) التي يراها النموذج:',dist:'توزيع الاحتمالات للرمز التالي عند درجة الحرارة',gen:'ولّد الرمز التالي',again:'ولّد مرة أخرى',log:'ما ولّده النموذج:',temp:'درجة الحرارة (Temperature)',goal:'الهدف: ولّد ثلاث مرات على الأقل بدرجتي حرارة مختلفتين (مثلًا 0 ثم 1.5) ولاحظ الفرق.',done:'أحسنت: رأيت كيف تتحكم درجة الحرارة في التنوع.',finish:'إنهاء النشاط'}
+                :{pick:'Pick a sentence opening',toks:'Tokens the model sees:',dist:'Probability distribution for the next token at temperature',gen:'Generate the next token',again:'Generate again',log:'What the model generated:',temp:'Temperature',goal:'Goal: generate at least three times at two different temperatures (say 0 then 1.5) and notice the difference.',done:'Well done: you saw how temperature controls variety.',finish:'Finish activity'};
+    function dist(){const p=data.prefixes[pi].cands.map(c=>c.p);if(T<0.05){const m=Math.max(...p);return p.map(x=>x===m?1:0);}const q=p.map(x=>Math.pow(x,1/T));const s=q.reduce((a,b)=>a+b,0);return q.map(x=>x/s);}
+    function sample(){const d=dist();let r=Math.random(),acc=0;for(let i=0;i<d.length;i++){acc+=d[i];if(r<=acc)return i;}return d.length-1;}
+    let last=null;
+    function render(){
+      const P=data.prefixes[pi],d=dist();
+      el.innerHTML=`<p class="hint">${lab.goal}</p><div class="chips">${data.prefixes.map((p,i)=>`<button type="button" class="chip ${i===pi?'sel':''}" data-p="${i}">${L(p.label)}</button>`).join('')}</div>
+      <p class="hint" style="margin-top:8px">${lab.toks}</p><div class="tokens">${L(P.tokens).map(t=>`<span class="tok">${t}</span>`).join('')}</div>
+      <div class="prefix">${L(P.text)} <span class="out">${last!==null?L(P.cands[last].t):'____'}</span></div>
+      <label class="hint" for="temp">${lab.temp}: <b>${T.toFixed(1)}</b></label><input id="temp" class="range" type="range" min="0" max="2" step="0.1" value="${T}">
+      <p class="hint">${lab.dist} ${T.toFixed(1)}:</p>${P.cands.map((c,i)=>`<div class="probbar ${last===i?'pick':''}"><span>${L(c.t)}</span><i><b style="width:${Math.round(d[i]*100)}%"></b></i><span>${(d[i]*100).toFixed(1)}%</span></div>`).join('')}
+      <div class="row"><button type="button" class="btn" id="gen">${last===null?lab.gen:lab.again}</button>${hist.length>=3&&temps.size>=2?`<button type="button" class="btn ghost" id="fin">${lab.finish}</button>`:''}</div>
+      ${hist.length?`<p class="hint" style="margin-top:6px">${lab.log} ${hist.map(h=>`<span class="tok">${h}</span>`).join(' ')}</p>`:''}`;
+      el.querySelectorAll('[data-p]').forEach(b=>b.addEventListener('click',()=>{pi=+b.dataset.p;last=null;render();}));
+      el.querySelector('#temp').addEventListener('input',e=>{T=+e.target.value;render();});
+      el.querySelector('#gen').addEventListener('click',()=>{last=sample();hist.push(`${L(P.text)} ${L(P.cands[last].t)} (T=${T.toFixed(1)})`);temps.add(T.toFixed(1));render();});
+      const f=el.querySelector('#fin');if(f)f.addEventListener('click',()=>ctx.done(3,3));
+    }
+    if(ctx.state.done){el.innerHTML=`<p class="fb ok">${lab.done}</p>`;return;}
+    render();
+  });
+  /* attention: pick the words that resolve the ambiguity */
+  Course.widget('attention',function(el,data,ctx){
+    const L=ctx.L,ar=ctx.lang==='ar';let ri=0,sel=new Set(),checked=false,total=0,max=0;
+    const lab=ar?{check:'تحقق',next:'الجملة التالية ←',finish:'إنهاء',q:'أي الكلمات يجب أن «ينتبه» إليها النموذج ليفهم الكلمة المظلّلة؟ اضغطها.',res:(c,n)=>`أصبت ${c} من ${n}.`}:{check:'Check',next:'Next sentence →',finish:'Finish',q:'Which words should the model "attend" to in order to understand the highlighted word? Tap them.',res:(c,n)=>`You got ${c} of ${n}.`};
+    function render(){
+      const R=data.rounds[ri];const words=L(R.words);
+      el.innerHTML=`<p class="hint">${lab.q}</p><div class="chips" style="direction:${ar?'rtl':'ltr'}">${words.map((w,i)=>`<button type="button" class="word ${i===R.target?'tok hot':''} ${sel.has(i)?'sel':''} ${checked?(R.keys.includes(i)?'ok':(sel.has(i)?'bad':'')):''}" data-i="${i}" ${i===R.target||checked?'disabled':''}>${w}</button>`).join('')}</div>
+      ${checked?`<div class="fb ${R.keys.every(k=>sel.has(k))&&sel.size===R.keys.length?'ok':'bad'}">${L(R.why)}</div><div class="row"><button type="button" class="btn" id="nx">${ri<data.rounds.length-1?lab.next:lab.finish}</button></div>`:`<div class="row"><button type="button" class="btn" id="ck" ${sel.size?'':'disabled'}>${lab.check}</button></div>`}`;
+      el.querySelectorAll('[data-i]').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.i;if(sel.has(i))sel.delete(i);else sel.add(i);render();}));
+      const k=el.querySelector('#ck');if(k)k.addEventListener('click',()=>{checked=true;const hit=R.keys.filter(x=>sel.has(x)).length,wrong=[...sel].filter(x=>!R.keys.includes(x)).length;total+=Math.max(0,hit-wrong);max+=R.keys.length;render();});
+      const n=el.querySelector('#nx');if(n)n.addEventListener('click',()=>{if(ri<data.rounds.length-1){ri++;sel=new Set();checked=false;render();}else ctx.done(total,max);});
+    }
+    if(ctx.state.done){el.innerHTML=`<p class="fb ok">${lab.res(ctx.state.score,ctx.state.max)}</p>`;return;}
+    render();
+  });
+})();
+
+Course.init({
+  slug:'llm',
+  lectures:{ar:'محور النماذج اللغوية الكبيرة',en:'Large language models topic'},
+  title:{ar:'داخل النموذج اللغوي',en:'Inside the Language Model'},
+  sub:{ar:'محاكي في أربع مراحل: تولّد الكلمة التالية بنفسك وتتحكم في درجة الحرارة، تجرّب آلية الانتباه، تفهم لماذا يهلوس النموذج ومتى تثق به، ثم تختار بين الأمر والاسترجاع والضبط الدقيق.',en:'A four-stage simulator: generate the next token yourself and control the temperature, try the attention mechanism, understand why the model hallucinates and when to trust it, then choose between prompting, retrieval and fine-tuning.'},
+  how:{ar:['المرحلة 1 محاكاة مبسطة: الاحتمالات فيها مكتوبة يدويًا لتوضيح الفكرة، لا من نموذج حقيقي.','جرّب درجة الحرارة 0 ثم 1.5 ولاحظ كيف يتغير «الإبداع» والعشوائية.','المصطلحات بثلاث لغات؛ التحدي يفتح المرحلة التالية.'],
+       en:['Stage 1 is a simplified simulation: its probabilities are hand-written to illustrate the idea, not from a real model.','Try temperature 0 then 1.5 and notice how "creativity" and randomness change.','Terms in three languages; the challenge unlocks the next stage.']},
+  sections:[
+  { id:'s1', n:'1', t:{ar:'آلة التنبؤ بالكلمة التالية',en:'The next-word prediction machine'}, y:{ar:'ما النموذج اللغوي؟',en:'What is a language model?'},
+    story:{ar:['<b>النموذج اللغوي الكبير (LLM)</b> آلة تفعل شيئًا واحدًا: تأخذ نصًا وتحسب لكل <b>رمز (Token)</b> ممكن احتمال أن يكون التالي، ثم تختار واحدًا، وتضيفه، وتعيد الكرة. كل ما يبدو «فهمًا» أو «إبداعًا» ينتج عن هذه الحلقة المكررة آلاف المرات بعد تدريب على تريليونات الكلمات.',
+      'الرمز ليس كلمة بالضبط: قطعة نص (كلمة قصيرة، أو جزء من كلمة، أو علامة ترقيم). النصوص العربية تُقطَّع إلى رموز أكثر من الإنجليزية، فتكلف أكثر وتُفهم أقل أحيانًا.',
+      '<b>درجة الحرارة (Temperature)</b> إعداد يتحكم في الاختيار: عند 0 يأخذ النموذج الرمز الأرجح دائمًا (نفس الجواب كل مرة)، وكلما ارتفعت زادت فرص الرموز الأقل احتمالًا: تنوع أكثر، ومخاطرة أكثر.'],
+      en:['A <b>Large Language Model (LLM)</b> is a machine that does one thing: it takes text and computes, for every possible <b>token</b>, the probability of being next; then it picks one, appends it, and repeats. Everything that looks like "understanding" or "creativity" emerges from this loop, repeated thousands of times, after training on trillions of words.',
+      'A token is not exactly a word: a piece of text (a short word, part of a word, or punctuation). Arabic text is split into more tokens than English, so it costs more and is sometimes understood less well.',
+      '<b>Temperature</b> is a setting that controls the choice: at 0 the model always takes the likeliest token (the same answer every time); the higher it goes, the more chance the less likely tokens get: more variety, more risk.']},
+    lesson:{ar:'النموذج لا «يعرف» الجواب؛ يعرف أي نص يشبه الأجوبة التي رآها.',en:'The model does not "know" the answer; it knows what text resembles the answers it has seen.'},
+    terms:[
+      {en:'Large Language Model (LLM)',fr:'Grand modèle de langage',ar:'النموذج اللغوي الكبير',s:{ar:'شبكة عصبية ضخمة (محوّل) دُرّبت على نصوص هائلة لتتنبأ بالرمز التالي؛ أساس ChatGPT وClaude وGemini.',en:'A huge neural network (a Transformer) trained on vast text to predict the next token; the basis of ChatGPT, Claude and Gemini.'},c:{ar:'«كبير» يعني عدد المعاملات، لا حجم المعرفة المؤكدة.',en:'"Large" refers to parameter count, not to the amount of verified knowledge.'}},
+      {en:'Next-token prediction',fr:'Prédiction du jeton suivant',ar:'التنبؤ بالرمز التالي',s:{ar:'المهمة الوحيدة التي يتدرب عليها النموذج: من هذا النص، ما القطعة التالية الأرجح؟',en:'The only task the model trains on: given this text, what is the likeliest next piece?'},c:{ar:'ليس «بحثًا» عن جواب مخزّن ولا «تفكيرًا» بالمعنى البشري.',en:'Neither a "lookup" of a stored answer nor "thinking" in the human sense.'}},
+      {en:'Token',fr:'Jeton',ar:'الرمز',s:{ar:'الوحدة التي يقرأ بها النموذج النص: كلمة قصيرة أو جزء كلمة أو علامة. تُحسب بها التكلفة ونافذة السياق.',en:'The unit in which the model reads text: a short word, a word fragment or a symbol. Cost and context window are counted in tokens.'},c:{ar:'العربية تحتاج رموزًا أكثر للنص نفسه مقارنة بالإنجليزية.',en:'Arabic needs more tokens than English for the same text.'}},
+      {en:'Temperature',fr:'Température',ar:'درجة الحرارة',s:{ar:'إعداد يتحكم في العشوائية عند اختيار الرمز التالي: 0 حتمي ومتكرر، أعلى من 1 متنوع ومجازف.',en:'A setting controlling randomness when picking the next token: 0 is deterministic and repetitive, above 1 varied and risky.'},c:{ar:'لا علاقة لها بالحرارة الفيزيائية؛ استعارة من الفيزياء الإحصائية.',en:'Nothing to do with physical heat; a metaphor borrowed from statistical physics.'}}],
+    activity:{id:'nexttoken',title:{ar:'ولّد الرمز التالي بنفسك',en:'Generate the next token yourself'},
+      prefixes:[
+        {label:{ar:'البنك المركزي',en:'The central bank'},text:{ar:'رفع البنك المركزي سعر',en:'The central bank raised the'},tokens:{ar:['رفع','البنك','المركزي','سعر'],en:['The','central','bank','raised','the']},cands:[{t:{ar:'الفائدة',en:'interest'},p:.62},{t:{ar:'الصرف',en:'exchange'},p:.22},{t:{ar:'الخصم',en:'discount'},p:.09},{t:{ar:'الخبز',en:'bread'},p:.05},{t:{ar:'القمر',en:'moon'},p:.02}]},
+        {label:{ar:'دارتموث',en:'Dartmouth'},text:{ar:'في صيف 1956 وُلد مصطلح الذكاء',en:'In the summer of 1956 the term artificial'},tokens:{ar:['في','صيف','1956','وُلد','مصطلح','الذكاء'],en:['In','the','summer','of','1956','the','term','artificial']},cands:[{t:{ar:'الاصطناعي',en:'intelligence'},p:.85},{t:{ar:'الآلي',en:'reasoning'},p:.07},{t:{ar:'البشري',en:'life'},p:.05},{t:{ar:'العاطفي',en:'flavour'},p:.03}]},
+        {label:{ar:'الضفة',en:'The bank'},text:{ar:'جلستُ على ضفة',en:'I sat on the bank of the'},tokens:{ar:['جلستُ','على','ضفة'],en:['I','sat','on','the','bank','of','the']},cands:[{t:{ar:'النهر',en:'river'},p:.78},{t:{ar:'الوادي',en:'lake'},p:.15},{t:{ar:'البحيرة',en:'canal'},p:.05},{t:{ar:'البنك',en:'account'},p:.02}]}]},
+    qs:[
+      {k:'mcq',q:{ar:'ما المهمة الوحيدة التي يتدرب عليها النموذج اللغوي؟',en:'What is the only task a language model trains on?'},o:{ar:['البحث في الإنترنت','التنبؤ بالرمز التالي','حفظ الموسوعات','التحقق من الحقائق'],en:['Searching the internet','Predicting the next token','Memorising encyclopaedias','Fact-checking']},a:1,w:{ar:'كل القدرات الأخرى تنبثق من هذه المهمة.',en:'Every other ability emerges from this task.'}},
+      {k:'mcq',q:{ar:'عند درجة حرارة 0:',en:'At temperature 0:'},o:{ar:['يختار النموذج الرمز الأرجح دائمًا فيعطي الجواب نفسه','يصبح النموذج أذكى','يصبح النموذج عشوائيًا','يتوقف النموذج'],en:['The model always picks the likeliest token and gives the same answer','The model gets smarter','The model becomes random','The model stops']},a:0,w:{ar:'حتمي ومتكرر؛ مناسب للمهام التي تريد فيها اتساقًا.',en:'Deterministic and repetitive; suited to tasks where you want consistency.'}},
+      {k:'tf',q:{ar:'الرمز (Token) هو دائمًا كلمة كاملة.',en:'A token is always a whole word.'},a:false,w:{ar:'قد يكون جزء كلمة أو علامة؛ والعربية تحتاج رموزًا أكثر.',en:'It may be a word fragment or a symbol; Arabic needs more tokens.'}}]},
+
+  { id:'s2', n:'2', t:{ar:'من الكلمات إلى الأرقام: الانتباه',en:'From words to numbers: attention'}, y:{ar:'الرموز والتضمينات والمحوّل',en:'Tokens, embeddings and the Transformer'},
+    story:{ar:['الحاسوب لا يعرف الحروف؛ يعرف الأرقام. لذلك يُحوَّل كل رمز إلى <b>تضمين (Embedding)</b>: قائمة أرقام (متجه) تعبّر عن معناه، بحيث تكون الكلمات المتشابهة متقاربة: «ملك» قريب من «ملكة»، و«دينار» قريب من «درهم».',
+      'المشكلة أن الكلمة الواحدة تتغير بمعناها حسب الجملة: «البنك» في «رفع البنك سعر الفائدة» غيره في «جلست على ضفة البنك». هنا تأتي <b>آلية الانتباه (Attention)</b>، قلب <b>المحوّل (Transformer)</b>: لكل كلمة يحسب النموذج أي الكلمات الأخرى في الجملة أهم لفهمها، ويخلط تمثيلها بتمثيلاتها. في الجملة الثانية ينتبه «البنك» إلى «ضفة» فيصير معناه نهرًا.',
+      'هذه الآلية تعمل على الجملة كلها دفعة واحدة وبالتوازي؛ لذلك أمكن تدريبها على نصوص هائلة بسرعة، وهذا سر الانفجار منذ 2017.'],
+      en:['A computer knows no letters, only numbers. So every token is turned into an <b>embedding</b>: a list of numbers (a vector) that expresses its meaning, such that similar words are close: "king" near "queen", "dinar" near "dirham".',
+      'The trouble is that one word changes meaning with the sentence: "bank" in "the bank raised the interest rate" is not "bank" in "I sat on the river bank". Here comes the <b>attention</b> mechanism, the heart of the <b>Transformer</b>: for every word the model computes which other words in the sentence matter most for understanding it, and blends its representation with theirs. In the second sentence "bank" attends to "river" and its meaning becomes a riverside.',
+      'This mechanism works on the whole sentence at once and in parallel; that is why it could be trained on enormous text quickly, and that is the secret of the explosion since 2017.']},
+    lesson:{ar:'المعنى في النموذج ليس تعريفًا في قاموس بل موقع بين كلمات أخرى.',en:'Meaning in the model is not a dictionary definition but a position among other words.'},
+    terms:[
+      {en:'Embedding',fr:'Plongement lexical',ar:'التضمين (التمثيل المتجهي)',s:{ar:'تمثيل الكلمة أو الجملة بقائمة أرقام بحيث تتقارب المعاني المتشابهة. ما يسمح بحساب «المعنى» رياضيًا.',en:'Representing a word or sentence as a list of numbers such that similar meanings are close. What allows "meaning" to be computed mathematically.'},c:{ar:'تُستعمل أيضًا للبحث الدلالي: جملتان بكلمات مختلفة ومعنى واحد تتقاربان.',en:'Also used for semantic search: two sentences with different words and one meaning come out close.'}},
+      {en:'Attention',fr:'Mécanisme d’attention',ar:'آلية الانتباه',s:{ar:'حساب، لكل كلمة، أوزان تحدد أي الكلمات الأخرى في النص أهم لفهمها؛ أساس المحوّل.',en:'Computing, for each word, weights that say which other words in the text matter most for understanding it; the basis of the Transformer.'},c:{ar:'ليس انتباهًا واعيًا؛ ضرب مصفوفات.',en:'Not conscious attention; matrix multiplication.'}},
+      {en:'Transformer',fr:'Transformeur',ar:'المحوّل',s:{ar:'بنية الشبكة العصبية (2017) القائمة على الانتباه، تعالج النص بالتوازي؛ الحرف T في GPT.',en:'The attention-based neural architecture (2017) that processes text in parallel; the T in GPT.'},c:{ar:'يُستعمل اليوم للصور والصوت أيضًا، لا للنص فقط.',en:'Used today for images and audio too, not only text.'}},
+      {en:'Context window',fr:'Fenêtre de contexte',ar:'نافذة السياق',s:{ar:'أقصى عدد رموز يستطيع النموذج الانتباه إليها دفعة واحدة؛ ما يتجاوزها يُنسى.',en:'The maximum number of tokens the model can attend to at once; anything beyond is forgotten.'},c:{ar:'ذاكرة عمل مؤقتة لا ذاكرة دائمة عنك.',en:'Temporary working memory, not a permanent memory of you.'}}],
+    activity:{id:'attention',title:{ar:'إلى أين ينتبه النموذج؟',en:'Where does the model attend?'},rounds:[
+      {words:{ar:['رفع','البنك','المركزي','سعر','الفائدة','بنقطة'],en:['The','central','bank','raised','the','interest','rate']},target:1,keys:[2,4],why:{ar:'«المركزي» و«الفائدة» تحسمان أن البنك هنا مؤسسة مالية.',en:'"central" and "interest" settle that "bank" here is a financial institution.'}},
+      {words:{ar:['جلستُ','على','ضفة','البنك','أراقب','الماء'],en:['I','sat','on','the','bank','watching','the','water']},target:3,keys:[2,5],why:{ar:'«ضفة» و«الماء» تجعلان «البنك» نهرًا لا مصرفًا.',en:'"on" and "water" (with the setting) make "bank" a riverside, not a lender.'}},
+      {words:{ar:['اشتريتُ','فائدة','جديدة','للمكتب','بلا','فائدة'],en:['The','company','made','a','good','profit','from','a','bad','product']},target:5,keys:[2,4],why:{ar:'التكرار يخدع: الفائدة الثانية «جدوى» لا «عائدًا»؛ «بلا» تحسمها. (في الإنجليزية: profit تُفهم من made وgood.)',en:'"made" and "good" fix the meaning of "profit" as earnings, not advantage.'}}]},
+    qs:[
+      {k:'mcq',q:{ar:'التضمين (Embedding) هو:',en:'An embedding is:'},o:{ar:['ترجمة الكلمة','قائمة أرقام تمثل معنى الكلمة بحيث تتقارب المعاني المتشابهة','قاعدة نحوية','صورة للكلمة'],en:['A translation of the word','A list of numbers representing the word\'s meaning so similar meanings are close','A grammar rule','A picture of the word']},a:1,w:{ar:'المعنى يصبح موقعًا في فضاء رياضي.',en:'Meaning becomes a position in a mathematical space.'}},
+      {k:'tf',q:{ar:'آلية الانتباه تقرأ الجملة كلمة كلمة بالترتيب.',en:'The attention mechanism reads the sentence word by word in order.'},a:false,w:{ar:'تعالج الجملة كلها دفعة واحدة وبالتوازي؛ هذا سر سرعة التدريب.',en:'It processes the whole sentence at once and in parallel; that is the secret of fast training.'}},
+      {k:'mcq',q:{ar:'الحرف T في GPT يشير إلى:',en:'The T in GPT stands for:'},o:{ar:['Training','Transformer','Turing','Token'],en:['Training','Transformer','Turing','Token']},a:1,w:{ar:'Generative Pre-trained Transformer.',en:'Generative Pre-trained Transformer.'}}]},
+
+  { id:'s3', n:'3', t:{ar:'كيف يُصنع المساعد، ولماذا يهلوس؟',en:'How the assistant is made, and why it hallucinates'}, y:{ar:'التدريب على ثلاث مراحل وحدود المعرفة',en:'Three training stages and the limits of knowledge'},
+    story:{ar:['المساعد الذي تحادثه مرّ بثلاث مراحل: <b>التدريب المسبق (Pre-training)</b> على تريليونات الكلمات من الإنترنت والكتب لتعلم التنبؤ بالنص (ينتج «مكمّل نصوص» لا مساعدًا)؛ ثم <b>الضبط الدقيق (Fine-tuning)</b> على أمثلة محادثات تعلّمه أن يجيب بأسلوب مساعد؛ ثم <b>التعلم بالتعزيز من التغذية البشرية (RLHF)</b>: بشر يرتبون أجوبته فيتعلم تفضيل ما يفضّلونه. مجموع ذلك يسمى <b>المواءمة (Alignment)</b>.',
+      'لماذا <b>يهلوس</b>؟ لأنه يتنبأ بالنص الأرجح لا بالحقيقة. إذا سألته عن مراجع أكاديمية فسيولّد ما <i>يشبه</i> المراجع: أسماء مؤلفين معقولة، مجلات حقيقية، سنوات ممكنة، وبعضها غير موجود. الثقة في النبرة لا تدل على الصحة؛ النموذج واثق دائمًا.',
+      'ولماذا لا يعرف أخبار الأمس؟ لأن معرفته تتوقف عند <b>تاريخ قطع المعرفة (Knowledge cutoff)</b>، آخر نص تدرّب عليه. ما بعده لا يعرفه إلا إذا زُوّد بأداة بحث أو بوثيقة. وما تكتبه له في المحادثة يبقى في نافذة السياق فقط؛ لا يتعلم منه ولا «يتذكرك» غدًا إلا عبر ميزة ذاكرة منفصلة.'],
+      en:['The assistant you chat with went through three stages: <b>pre-training</b> on trillions of words from the internet and books to learn text prediction (which yields a "text completer", not an assistant); then <b>fine-tuning</b> on example conversations that teach it to answer like an assistant; then <b>Reinforcement Learning from Human Feedback (RLHF)</b>: humans rank its answers and it learns to prefer what they prefer. Together this is called <b>alignment</b>.',
+      'Why does it <b>hallucinate</b>? Because it predicts the likeliest text, not the truth. Ask it for academic references and it will generate what <i>looks like</i> references: plausible author names, real journals, possible years, some of them non-existent. Confidence in tone says nothing about correctness; the model always sounds confident.',
+      'And why does it not know yesterday\'s news? Because its knowledge stops at the <b>knowledge cutoff</b>, the last text it trained on. Anything later it knows only if given a search tool or a document. And what you type in a conversation stays in the context window only; it does not learn from it and will not "remember you" tomorrow except through a separate memory feature.']},
+    lesson:{ar:'قاعدة التحقق: كل وقائع، أرقام، تواريخ، أسماء، ومراجع يولّدها النموذج تُعامل كمسودة حتى تُراجع من مصدر.',en:'The verification rule: every fact, number, date, name and reference the model generates is a draft until checked against a source.'},
+    terms:[
+      {en:'Pre-training',fr:'Pré-entraînement',ar:'التدريب المسبق',s:{ar:'المرحلة الأولى والأغلى: تعلم التنبؤ بالنص من كميات هائلة من النصوص العامة.',en:'The first and costliest stage: learning text prediction from vast general text.'},c:{ar:'نتيجتها «مكمّل نصوص» خام لا مساعد مهذب.',en:'Its result is a raw "text completer", not a polite assistant.'}},
+      {en:'Fine-tuning',fr:'Réglage fin',ar:'الضبط الدقيق',s:{ar:'تدريب إضافي قصير على أمثلة مختارة ليكتسب النموذج أسلوبًا أو مهارة محددة.',en:'Short additional training on selected examples so the model acquires a specific style or skill.'},c:{ar:'غير هندسة الأوامر: الضبط يغيّر أوزان النموذج، والأمر لا يغيّر شيئًا فيه.',en:'Not prompt engineering: fine-tuning changes the model\'s weights; a prompt changes nothing inside it.'}},
+      {en:'RLHF (Reinforcement Learning from Human Feedback)',fr:'Apprentissage par renforcement à partir du retour humain',ar:'التعلم بالتعزيز من التغذية البشرية',s:{ar:'بشر يقارنون أجوبة النموذج ويفضّلون بعضها؛ فيتعلم النموذج إنتاج ما يُفضَّل.',en:'Humans compare the model\'s answers and prefer some; the model learns to produce what is preferred.'},c:{ar:'يجعل الأجوبة أكثر قبولًا لا بالضرورة أكثر صحة.',en:'Makes answers more agreeable, not necessarily more correct.'}},
+      {en:'Hallucination (confabulation)',fr:'Hallucination',ar:'الهلوسة',s:{ar:'إنتاج معلومة مقنعة الشكل خاطئة المضمون لأن النموذج يتنبأ بالأرجح لا بالصحيح.',en:'Producing information convincing in form and false in substance because the model predicts the likeliest, not the true.'},c:{ar:'تزداد في الأسئلة النادرة والتفاصيل الدقيقة (مراجع، أرقام، أشخاص غير مشهورين).',en:'Increases on rare questions and fine detail (references, numbers, little-known people).'}},
+      {en:'Knowledge cutoff',fr:'Date de coupure des connaissances',ar:'تاريخ قطع المعرفة',s:{ar:'آخر تاريخ شملته بيانات التدريب؛ ما بعده مجهول للنموذج بلا أداة.',en:'The last date covered by training data; anything after is unknown to the model without a tool.'},c:{ar:'«البحث» في بعض التطبيقات أداة ملحقة لا جزءًا من النموذج.',en:'"Search" in some apps is an attached tool, not part of the model.'}},
+      {en:'Alignment',fr:'Alignement',ar:'المواءمة',s:{ar:'مجموع التقنيات التي تجعل النموذج يتصرف وفق ما يريده البشر: مفيدًا، صادقًا، غير ضار.',en:'The set of techniques that make the model behave as humans intend: helpful, honest, harmless.'},c:{ar:'ليست ضمانًا؛ تقلل المشكلات ولا تلغيها.',en:'Not a guarantee; it reduces problems without eliminating them.'}}],
+    activity:{id:'claims',title:{ar:'هل تثق بالجواب كما هو؟',en:'Do you trust the answer as is?'},
+      claims:[
+        {t:{ar:'«لخّص هذا النص في ثلاث جمل» (النص ملصق في الأمر)',en:'"Summarise this text in three sentences" (the text is pasted in the prompt)'},bad:false,why:{ar:'المادة أمامه في السياق؛ مهمة لغوية يجيدها، مع قراءة سريعة للتأكد.',en:'The material is in its context; a language task it does well, with a quick read to confirm.'}},
+        {t:{ar:'«ما سعر صرف الدينار مقابل اليورو اليوم؟»',en:'"What is today\'s dinar–euro exchange rate?"'},bad:true,why:{ar:'بعد تاريخ قطع المعرفة ويتغير يوميًا؛ يحتاج أداة أو مصدرًا.',en:'After the knowledge cutoff and changes daily; needs a tool or a source.'}},
+        {t:{ar:'«أعطني خمسة مراجع أكاديمية عن التضخم في الجزائر مع سنوات النشر»',en:'"Give me five academic references on inflation in Algeria with publication years"'},bad:true,why:{ar:'أعلى مناطق الهلوسة: مراجع معقولة الشكل بعضها غير موجود؛ تحقق من كل واحد في قاعدة بيانات.',en:'Peak hallucination zone: plausible-looking references, some non-existent; check each in a database.'}},
+        {t:{ar:'«اشرح الفرق بين التضخم والركود بلغة بسيطة»',en:'"Explain the difference between inflation and recession in simple language"'},bad:false,why:{ar:'معرفة عامة مستقرة وشائعة في بيانات التدريب.',en:'Stable, common general knowledge in training data.'}},
+        {t:{ar:'«احسب 4 731 × 2 918»',en:'"Compute 4,731 × 2,918"'},bad:true,why:{ar:'النموذج يتنبأ بالأرقام كنص؛ قد يخطئ في الحساب الطويل. استعمل آلة حاسبة أو أداة.',en:'The model predicts digits as text; it may err on long arithmetic. Use a calculator or a tool.'}},
+        {t:{ar:'«ما نسبة البطالة في الجزائر سنة 2025 بالضبط؟»',en:'"What exactly was Algeria\'s unemployment rate in 2025?"'},bad:true,why:{ar:'رقم دقيق لحدث قريب: قد يكون بعد القطع وقد يُخترع؛ خذه من الديوان الوطني للإحصائيات.',en:'A precise figure for a recent period: may be after the cutoff and may be invented; take it from the national statistics office.'}}]},
+    qs:[
+      {k:'order',q:{ar:'رتّب مراحل صناعة المساعد:',en:'Order the stages of making the assistant:'},o:{ar:['التعلم بالتعزيز من التغذية البشرية','التدريب المسبق على نصوص هائلة','الضبط الدقيق على أمثلة محادثات'],en:['Reinforcement learning from human feedback','Pre-training on vast text','Fine-tuning on example conversations']},a:[1,2,0],w:{ar:'تدريب مسبق ← ضبط دقيق ← RLHF.',en:'Pre-training → fine-tuning → RLHF.'}},
+      {k:'tf',q:{ar:'إذا أجاب النموذج بثقة فجوابه صحيح على الأرجح.',en:'If the model answers confidently, its answer is probably correct.'},a:false,w:{ar:'النبرة واثقة دائمًا؛ الصحة تُراجع من مصدر.',en:'The tone is always confident; correctness is checked against a source.'}},
+      {k:'mcq',q:{ar:'ما تكتبه للنموذج في المحادثة:',en:'What you type to the model in a conversation:'},o:{ar:['يغيّر أوزانه فورًا','يبقى في نافذة السياق فقط ولا يتعلم منه','يُنشر على الإنترنت','يُحفظ في النموذج للأبد'],en:['Changes its weights immediately','Stays in the context window only; it does not learn from it','Is published online','Is stored in the model forever']},a:1,w:{ar:'التعلم يحدث في التدريب لا في المحادثة (ما لم تُفعَّل ذاكرة منفصلة).',en:'Learning happens in training, not in conversation (unless a separate memory feature is on).'}}]},
+
+  { id:'s4', n:'4', t:{ar:'ما وراء النموذج: أدوات، استرجاع، واختيار',en:'Beyond the model: tools, retrieval and choice'}, y:{ar:'RAG والأدوات والنماذج المفتوحة',en:'RAG, tools and open models'},
+    story:{ar:['النموذج وحده لا يعرف بياناتك ولا أخبار اليوم. ثلاث طرق لسد الفجوة، بتكلفة متصاعدة: <b>هندسة الأوامر</b>: تضع المعلومة في الأمر نفسه (مجانية، لكنها محدودة بنافذة السياق)؛ <b>التوليد المعزز بالاسترجاع (RAG)</b>: نظام يبحث في وثائق مؤسستك ويضع المقاطع المناسبة في الأمر قبل أن يجيب النموذج (يقلل الهلوسة ويحدّث المعرفة بلا إعادة تدريب)؛ <b>الضبط الدقيق</b>: تدريب إضافي يغيّر النموذج نفسه (مكلف، ويناسب تغيير الأسلوب أكثر من إضافة معارف).',
+      'و<b>استعمال الأدوات (Tool use)</b>: يُسمح للنموذج باستدعاء آلة حاسبة أو بحث أو قاعدة بيانات؛ هو ما يحوّله من كاتب إلى وكيل. كل أداة تضيف قدرة ومخاطرة (المحور 12).',
+      'وعند الاختيار بين النماذج: الفرق بين <b>النموذج المغلق</b> عبر <b>واجهة برمجة (API)</b> (أقوى غالبًا، بياناتك تخرج إلى المزوّد) و<b>النموذج مفتوح الأوزان</b> (تشغّله داخل المؤسسة، بياناتك تبقى عندك، لكنه يحتاج عتادًا وخبرة). والتكلفة الحقيقية ليست التدريب بل <b>الاستدلال (Inference)</b>: كل سؤال يكلف حوسبة.'],
+      en:['The model alone knows neither your data nor today\'s news. Three ways to close the gap, at rising cost: <b>prompt engineering</b>: put the information in the prompt itself (free, but limited by the context window); <b>Retrieval-Augmented Generation (RAG)</b>: a system searches your organisation\'s documents and places the relevant passages in the prompt before the model answers (reduces hallucination and updates knowledge without retraining); <b>fine-tuning</b>: extra training that changes the model itself (costly, and better for changing style than adding knowledge).',
+      'And <b>tool use</b>: the model is allowed to call a calculator, a search engine or a database; it is what turns it from a writer into an agent. Every tool adds capability and risk (Topic 12).',
+      'When choosing between models: the difference between a <b>closed model</b> via an <b>API</b> (usually stronger; your data go to the provider) and an <b>open-weights model</b> (run inside your organisation; your data stay with you, but it needs hardware and expertise). And the real cost is not training but <b>inference</b>: every question costs compute.']},
+    lesson:{ar:'النموذج الأكبر ليس دائمًا الأفضل للمؤسسة: نموذج أصغر مع استرجاع جيد قد يتفوق في مهمتك بتكلفة أقل وخصوصية أعلى.',en:'The biggest model is not always best for an organisation: a smaller model with good retrieval may beat it on your task at lower cost and higher privacy.'},
+    terms:[
+      {en:'RAG (Retrieval-Augmented Generation)',fr:'Génération augmentée par récupération',ar:'التوليد المعزز بالاسترجاع',s:{ar:'قبل أن يجيب النموذج، يبحث النظام في وثائقك ويضع المقاطع المناسبة في الأمر؛ فتصير الإجابات مستندة إلى مصادرك.',en:'Before the model answers, the system searches your documents and places the relevant passages in the prompt; answers become grounded in your sources.'},c:{ar:'لا يلغي الهلوسة؛ يقللها ويجعل التحقق ممكنًا بذكر المصدر.',en:'Does not eliminate hallucination; reduces it and makes verification possible by citing the source.'}},
+      {en:'Tool use / Function calling',fr:'Utilisation d’outils',ar:'استعمال الأدوات',s:{ar:'السماح للنموذج باستدعاء برامج خارجية (حاسبة، بحث، قاعدة بيانات) أثناء الإجابة.',en:'Allowing the model to call external programs (calculator, search, database) while answering.'},c:{ar:'الأداة التي تنفذ (ترسل، تحذف) أخطر من الأداة التي تقرأ.',en:'A tool that acts (sends, deletes) is riskier than one that reads.'}},
+      {en:'Open-weights model',fr:'Modèle à poids ouverts',ar:'النموذج مفتوح الأوزان',s:{ar:'نموذج تُنشر أوزانه فيمكن تنزيله وتشغيله محليًا (Llama، Mistral، DeepSeek).',en:'A model whose weights are published, so it can be downloaded and run locally (Llama, Mistral, DeepSeek).'},c:{ar:'«مفتوح الأوزان» غير «مفتوح المصدر» كليًا: بيانات التدريب غالبًا غير منشورة.',en:'"Open weights" is not fully "open source": training data are usually not released.'}},
+      {en:'API (Application Programming Interface)',fr:'Interface de programmation',ar:'واجهة البرمجة',s:{ar:'الباب الذي تستدعي منه البرامج النموذج عن بُعد وتدفع لكل رمز.',en:'The door through which programs call the model remotely and pay per token.'},c:{ar:'عبر الواجهة تخرج بياناتك إلى خوادم المزوّد؛ العقد يحدد ما يحدث لها.',en:'Through the API your data leave for the provider\'s servers; the contract says what happens to them.'}},
+      {en:'Inference',fr:'Inférence',ar:'الاستدلال (التشغيل)',s:{ar:'تشغيل النموذج المدرَّب للإجابة عن سؤال؛ التكلفة الجارية الحقيقية للمؤسسة.',en:'Running the trained model to answer a query; the real running cost for an organisation.'},c:{ar:'التدريب مرة واحدة، الاستدلال في كل سؤال.',en:'Training happens once; inference on every query.'}}],
+    activity:{id:'sorter',title:{ar:'أي حل لأي حاجة؟',en:'Which solution for which need?'},rounds:[
+      {title:{ar:'ضع كل حاجة في الحل الأنسب والأرخص',en:'Place each need in the most suitable and cheapest solution'},buckets:[
+        {id:'prompt',t:{ar:'هندسة الأوامر',en:'Prompt engineering'}},{id:'rag',t:{ar:'الاسترجاع (RAG)',en:'Retrieval (RAG)'}},{id:'tool',t:{ar:'استعمال أداة',en:'Tool use'}},{id:'ft',t:{ar:'الضبط الدقيق',en:'Fine-tuning'}}],
+       items:[
+        {t:{ar:'أريد أن يجيب عن أسئلة الموظفين من دليل الإجراءات الداخلي (400 صفحة)',en:'Answer employees\' questions from the internal procedures manual (400 pages)'},b:'rag',why:{ar:'وثائق كثيرة تتغير؛ الاسترجاع يضع المقطع المناسب في كل مرة.',en:'Many changing documents; retrieval inserts the right passage each time.'}},
+        {t:{ar:'أريد تلخيص تقرير واحد من خمس صفحات',en:'Summarise one five-page report'},b:'prompt',why:{ar:'يدخل في نافذة السياق؛ أمر جيد يكفي.',en:'Fits in the context window; a good prompt is enough.'}},
+        {t:{ar:'أريد سعر الصرف الحالي داخل الإجابة',en:'Include the current exchange rate in the answer'},b:'tool',why:{ar:'معلومة حية تحتاج استدعاء مصدر.',en:'Live information needs a call to a source.'}},
+        {t:{ar:'أريد أن يكتب دائمًا بأسلوب مؤسستنا الرسمي الخاص بعد آلاف الأمثلة',en:'Always write in our organisation\'s specific formal style, with thousands of examples'},b:'ft',why:{ar:'تغيير أسلوب ثابت بأمثلة كثيرة: هذا ما يناسبه الضبط الدقيق.',en:'A fixed style change with many examples: that is what fine-tuning suits.'}},
+        {t:{ar:'أريد حسابات مالية دقيقة في كل رد',en:'Accurate financial calculations in every reply'},b:'tool',why:{ar:'الحساب يُفوَّض لآلة حاسبة أو جدول.',en:'Delegate arithmetic to a calculator or spreadsheet.'}},
+        {t:{ar:'أريد ترجمة رسالة واحدة بنبرة مهذبة',en:'Translate one message in a polite tone'},b:'prompt',why:{ar:'التعليمات في الأمر تكفي.',en:'Instructions in the prompt suffice.'}}]}]},
+    qs:[
+      {k:'mcq',q:{ar:'لجعل النموذج يجيب من وثائق مؤسستك المتغيرة بأقل تكلفة:',en:'To make the model answer from your organisation\'s changing documents at least cost:'},o:{ar:['أعد تدريبه كل شهر','استعمل التوليد المعزز بالاسترجاع (RAG)','اطبع الوثائق','اشترِ نموذجًا أكبر'],en:['Retrain it every month','Use retrieval-augmented generation (RAG)','Print the documents','Buy a bigger model']},a:1,w:{ar:'يحدّث المعرفة بلا إعادة تدريب ويذكر المصدر.',en:'Updates knowledge without retraining and cites the source.'}},
+      {k:'mcq',q:{ar:'الفرق بين الضبط الدقيق وهندسة الأوامر:',en:'The difference between fine-tuning and prompt engineering:'},o:{ar:['لا فرق','الضبط يغيّر أوزان النموذج؛ الأمر لا يغيّر شيئًا فيه','الأمر أغلى','الضبط أسرع'],en:['No difference','Fine-tuning changes the model\'s weights; a prompt changes nothing inside it','Prompting is more expensive','Fine-tuning is faster']},a:1,w:{ar:'الأمر يوجّه، والضبط يعدّل.',en:'A prompt steers; fine-tuning modifies.'}},
+      {k:'tf',q:{ar:'النموذج الأكبر دائمًا أفضل للمؤسسة.',en:'The biggest model is always best for an organisation.'},a:false,w:{ar:'التكلفة والخصوصية والمهمة تحدد؛ نموذج أصغر مع استرجاع قد يتفوق.',en:'Cost, privacy and task decide; a smaller model with retrieval may win.'}}]}
+  ],
+  final:{rows:{ar:[
+    ['الآلية','النموذج اللغوي يتنبأ بالرمز التالي ويكرر؛ درجة الحرارة تتحكم في العشوائية؛ والعربية تكلف رموزًا أكثر.'],
+    ['المعنى','الكلمات أرقام (تضمينات)، والانتباه يحدد أي الكلمات تفسر أيًا؛ المحوّل يعالج النص بالتوازي.'],
+    ['الصناعة والحدود','تدريب مسبق ← ضبط دقيق ← RLHF؛ النموذج يهلوس لأنه يتنبأ بالأرجح لا بالصحيح، ومعرفته تتوقف عند تاريخ القطع.'],
+    ['ما وراء النموذج','أمر ← استرجاع ← أداة ← ضبط دقيق، بتكلفة متصاعدة؛ والاختيار بين المغلق والمفتوح قرار خصوصية وتكلفة.']],
+    en:[
+    ['The mechanism','A language model predicts the next token and repeats; temperature controls randomness; Arabic costs more tokens.'],
+    ['Meaning','Words are numbers (embeddings), attention decides which words explain which; the Transformer processes text in parallel.'],
+    ['Making and limits','Pre-training → fine-tuning → RLHF; the model hallucinates because it predicts the likeliest, not the true, and its knowledge stops at the cutoff.'],
+    ['Beyond the model','Prompt → retrieval → tool → fine-tuning, at rising cost; closed vs open is a privacy and cost decision.']]},
+   question:{ar:'بنك جزائري يريد مساعدًا يجيب موظفيه عن تعليمات بنك الجزائر المتجددة: أي تركيبة تختار (نموذج مغلق/مفتوح + أمر/استرجاع/ضبط) ولماذا؟',en:'An Algerian bank wants an assistant that answers staff questions about the central bank\'s evolving instructions: which combination would you pick (closed/open model + prompt/retrieval/fine-tuning) and why?'}}
+});
+</script>
+</body>
+</html>
