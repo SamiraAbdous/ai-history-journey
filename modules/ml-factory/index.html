@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>مصنع التعلم الآلي</title>
+<meta name="description" content="محاكاة تفاعلية: درّب مصنِّفًا ائتمانيًا بيدك، راقب مصفوفة الارتباك، واكتشف الإفراط في التكيّف — من إعداد د. سميرة عبدوس.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Changa:wght@600;700;800&family=Tajawal:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="../../assets/app.css">
+<style>:root{--accent:#5B3FA3;--accent-soft:#E9E3F5}@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--accent:#A48BE8;--accent-soft:#2A2140}}
+.legend{display:flex;gap:14px;font-size:13px;color:var(--muted);margin:4px 0}.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-inline-end:4px}
+.modelbtns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
+.modelbtns button{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px;font-family:var(--body);color:var(--fg);cursor:pointer;text-align:center}
+.modelbtns button.sel{border-color:var(--accent);background:var(--accent-soft)}.modelbtns b{display:block;font-family:var(--display);color:var(--ink)}
+.curve{height:120px}
+</style>
+</head>
+<body>
+<script src="../../assets/engine.js"></script>
+<script src="../../assets/widgets.js"></script>
+<script>
+// ---------- custom widget: threshold classifier on a synthetic loan dataset ----------
+(function(){
+  function rng(seed){return function(){seed=(seed*1664525+1013904223)%4294967296;return seed/4294967296;};}
+  function dataset(seed,n){const r=rng(seed);const pts=[];for(let i=0;i<n;i++){const x=r(),y=r();const p=0.15+0.7*x-0.35*y;pts.push({x,y,d:r()<p?1:0});}return pts;}
+  function metrics(pts,t){let tp=0,fp=0,tn=0,fn=0;pts.forEach(p=>{const rej=p.x>t;if(rej&&p.d)tp++;else if(rej&&!p.d)fp++;else if(!rej&&!p.d)tn++;else fn++;});const n=pts.length;return{tp,fp,tn,fn,acc:Math.round((tp+tn)/n*100),prec:tp+fp?Math.round(tp/(tp+fp)*100):0,rec:tp+fn?Math.round(tp/(tp+fn)*100):0};}
+  Course.widget('classifier',function(el,data,ctx){
+    const L=ctx.L,ar=ctx.lang==='ar';const train=dataset(7,60),test=dataset(99,40);
+    let t=0.5,view='train';
+    let best=0;for(let k=0;k<=100;k++){best=Math.max(best,metrics(train,k/100).acc);}
+    const lab=ar?{x:'نسبة الدين إلى الدخل ←',y:'سنوات النشاط ↑',def:'تعثر',ok:'سدد',thr:'العتبة: ارفض الطلب إذا تجاوزت نسبة الدين',train:'بيانات التدريب (60)',test:'بيانات الاختبار (40)',acc:'الدقة',prec:'الضبط',rec:'الاستدعاء',cm:['','توقع: رفض','توقع: قبول','تعثر فعلًا','سدد فعلًا'],adopt:'اعتمد هذه العتبة',goal:'الهدف: حرّك العتبة حتى تجد أعلى دقة على بيانات التدريب، ثم تحقق منها على بيانات الاختبار، ثم اعتمدها.',res:(a,b)=>`اعتمدت عتبة بدقة ${a}% على التدريب و${b}% على الاختبار (أفضل دقة ممكنة على التدريب: ${best}%).`}
+                :{x:'Debt-to-income ratio →',y:'Years in business ↑',def:'Defaulted',ok:'Repaid',thr:'Threshold: reject the application if the debt ratio exceeds',train:'Training data (60)',test:'Test data (40)',acc:'Accuracy',prec:'Precision',rec:'Recall',cm:['','Predicted: reject','Predicted: accept','Actually defaulted','Actually repaid'],adopt:'Adopt this threshold',goal:'Goal: move the threshold until you find the highest accuracy on the training data, check it on the test data, then adopt it.',res:(a,b)=>`You adopted a threshold with ${a}% accuracy on training and ${b}% on test (best possible training accuracy: ${best}%).`};
+    function draw(){
+      const c=el.querySelector('canvas'),ctx2=c.getContext('2d');const W=c.width,H=c.height;ctx2.clearRect(0,0,W,H);
+      const cs=getComputedStyle(document.documentElement);const line=cs.getPropertyValue('--line').trim()||'#ccc',acc=cs.getPropertyValue('--accent').trim()||'#a52';
+      ctx2.strokeStyle=line;ctx2.lineWidth=1;for(let i=1;i<5;i++){ctx2.beginPath();ctx2.moveTo(i*W/5,0);ctx2.lineTo(i*W/5,H);ctx2.stroke();ctx2.beginPath();ctx2.moveTo(0,i*H/5);ctx2.lineTo(W,i*H/5);ctx2.stroke();}
+      const pts=view==='train'?train:test;
+      pts.forEach(p=>{ctx2.beginPath();ctx2.arc(p.x*(W-20)+10,H-(p.y*(H-20)+10),5,0,Math.PI*2);ctx2.fillStyle=p.d?'#B23A3A':'#2E7D4F';ctx2.fill();});
+      const tx=t*(W-20)+10;ctx2.strokeStyle=acc;ctx2.lineWidth=3;ctx2.setLineDash([6,4]);ctx2.beginPath();ctx2.moveTo(tx,0);ctx2.lineTo(tx,H);ctx2.stroke();ctx2.setLineDash([]);
+      ctx2.fillStyle=acc;ctx2.globalAlpha=.08;ctx2.fillRect(tx,0,W-tx,H);ctx2.globalAlpha=1;
+    }
+    function render(){
+      const m=metrics(view==='train'?train:test,t);
+      el.innerHTML=`<p class="hint">${lab.goal}</p>
+      <div class="row" style="margin:0 0 6px"><button type="button" class="btn small ${view==='train'?'':'ghost'}" data-v="train">${lab.train}</button><button type="button" class="btn small ${view==='test'?'':'ghost'}" data-v="test">${lab.test}</button></div>
+      <div class="legend"><span><i style="background:#B23A3A"></i>${lab.def}</span><span><i style="background:#2E7D4F"></i>${lab.ok}</span><span>${lab.y}</span></div>
+      <canvas class="plot" width="520" height="300" style="direction:ltr"></canvas><div class="hint" style="text-align:center">${lab.x}</div>
+      <label class="hint" for="thr">${lab.thr} <b>${t.toFixed(2)}</b></label><input id="thr" class="range" type="range" min="0" max="1" step="0.01" value="${t}">
+      <div class="kv" style="margin-top:8px"><div>${lab.acc}<b>${m.acc}%</b></div><div>${lab.prec}<b>${m.prec}%</b></div><div>${lab.rec}<b>${m.rec}%</b></div></div>
+      <table class="grid" style="margin-top:8px"><tr><th>${lab.cm[0]}</th><th>${lab.cm[1]}</th><th>${lab.cm[2]}</th></tr><tr><th>${lab.cm[3]}</th><td class="hi">${m.tp}</td><td class="lo">${m.fn}</td></tr><tr><th>${lab.cm[4]}</th><td class="lo">${m.fp}</td><td class="hi">${m.tn}</td></tr></table>
+      <div class="row"><button type="button" class="btn" id="adopt">${lab.adopt}</button></div>`;
+      draw();
+      el.querySelector('#thr').addEventListener('input',e=>{t=+e.target.value;render();});
+      el.querySelectorAll('[data-v]').forEach(b=>b.addEventListener('click',()=>{view=b.dataset.v;render();}));
+      el.querySelector('#adopt').addEventListener('click',()=>{const a=metrics(train,t).acc,b=metrics(test,t).acc;const sc=best-a<=2?3:best-a<=6?2:1;ctx.state.msg=lab.res(a,b);ctx.done(sc,3);});
+    }
+    if(ctx.state.done){el.innerHTML=`<p class="fb ok">${ctx.state.msg||''}</p>`;return;}
+    render();
+  });
+  // ---------- custom widget: pick the model that generalises ----------
+  Course.widget('pickmodel',function(el,data,ctx){
+    const L=ctx.L,ar=ctx.lang==='ar';let sel=null,checked=false;
+    const lab=ar?{tr:'دقة التدريب',te:'دقة الاختبار',pick:'اختر النموذج الذي تعتمده للزبائن الجدد',check:'اعتمد'}:{tr:'Training accuracy',te:'Test accuracy',pick:'Pick the model you would deploy on new customers',check:'Adopt'};
+    function render(){
+      el.innerHTML=`<p class="hint">${L(data.intro)}</p><div class="modelbtns">${data.models.map((m,i)=>`<button type="button" class="${sel===i?'sel':''}" data-i="${i}" ${checked?'disabled':''}><b>${L(m.t)}</b><span class="hint">${L(m.s)}</span><div>${lab.tr}: <b>${m.tr}%</b></div><div>${lab.te}: <b>${m.te}%</b></div></button>`).join('')}</div>
+      ${checked?`<div class="fb ${data.models[sel].good?'ok':'bad'}">${L(data.models[sel].why)}</div>`:`<div class="row"><span class="hint">${lab.pick}</span><button type="button" class="btn" id="ck" ${sel===null?'disabled':''}>${lab.check}</button></div>`}`;
+      el.querySelectorAll('[data-i]').forEach(b=>b.addEventListener('click',()=>{sel=+b.dataset.i;render();}));
+      const k=el.querySelector('#ck');if(k)k.addEventListener('click',()=>{checked=true;render();ctx.done(data.models[sel].good?3:1,3);});
+    }
+    if(ctx.state.done){el.innerHTML=`<p class="fb ok">${ar?'انتهى النشاط':'Activity finished'} — ${ctx.state.score} / ${ctx.state.max}</p>`;return;}
+    render();
+  });
+})();
+
+Course.init({
+  slug:'ml-factory',
+  lectures:{ar:'المحور 4',en:'Topic 4'},
+  title:{ar:'مصنع التعلم الآلي',en:'The Machine Learning Factory'},
+  sub:{ar:'محاكاة في أربع مراحل: ترتّب خط الإنتاج، تدرّب مصنِّفًا ائتمانيًا بيدك وتقرأ مصفوفة الارتباك، تكتشف الفرق بين الحفظ والتعلم، ثم تختار الأداة المناسبة لكل مشكلة اقتصادية.',en:'A four-stage simulation: order the production line, train a credit classifier by hand and read its confusion matrix, discover the difference between memorising and learning, then match the right tool to each economic problem.'},
+  how:{ar:['المرحلة 2 هي قلب الوحدة: حرّك العتبة على الرسم وراقب كيف تتغير الدقة والضبط والاستدعاء، ثم تحقق على بيانات لم يرها النموذج.','كل نشاط يُحتسب نقاطًا؛ الأخطاء تعرض شرحًا ويمكنك المتابعة.','المصطلحات بثلاث لغات في كل مرحلة؛ اقلب البطاقة لترى الشرح البسيط.'],
+       en:['Stage 2 is the heart of the module: move the threshold on the plot and watch accuracy, precision and recall change, then check on data the model never saw.','Every activity counts as points; mistakes show an explanation and you continue.','Terms in three languages at each stage; flip the card to see the plain explanation.']},
+  sections:[
+  { id:'s1', n:'1', t:{ar:'خط الإنتاج: من الجدول إلى النموذج',en:'The production line: from table to model'}, y:{ar:'دورة التعلم الآلي',en:'The machine learning cycle'},
+    story:{ar:['التعلم الآلي ليس سحرًا بل <b>خط إنتاج</b> له مراحل ثابتة: نجمع أمثلة من الماضي في جدول، كل صف حالة (زبون، طلب قرض) وكل عمود <b>سمة (Feature)</b> تصفها (الدخل، السن، نسبة الدين)، وعمود أخير هو <b>الوسم (Label)</b>: ما نريد التنبؤ به (سدد / تعثر).',
+      'ثم نقسم الجدول: جزء <b>للتدريب (Training)</b> يتعلم منه النموذج، وجزء <b>للاختبار (Test)</b> لا يراه حتى النهاية. أثناء التدريب يبدأ النموذج بمعاملات عشوائية، يقيس خطأه بـ<b>دالة الخسارة (Loss)</b>، ويعدّل معاملاته قليلًا في اتجاه تقليل الخطأ (<b>الانحدار التدرجي Gradient descent</b>)، آلاف المرات. ثم نقيّمه على الاختبار، ننشره، ونراقبه لأن الواقع يتغير.'],
+      en:['Machine learning is not magic but a <b>production line</b> with fixed stages: we gather past examples in a table; each row is a case (a customer, a loan application), each column a <b>feature</b> describing it (income, age, debt ratio), and a last column the <b>label</b>: what we want to predict (repaid / defaulted).',
+      'Then we split the table: a <b>training</b> part the model learns from, and a <b>test</b> part it never sees until the end. During training the model starts with random parameters, measures its error with a <b>loss function</b>, and nudges its parameters in the direction that reduces the error (<b>gradient descent</b>), thousands of times. Then we evaluate it on the test set, deploy it, and monitor it because reality changes.']},
+    lesson:{ar:'الدورة دائرة لا خط: النموذج يحتاج إعادة تدريب حين يتغير الواقع (أزمة، قانون جديد، سلوك جديد).',en:'The cycle is a circle, not a line: the model needs retraining when reality changes (a crisis, a new law, new behaviour).'},
+    terms:[
+      {en:'Feature (variable, attribute)',fr:'Variable explicative / caractéristique',ar:'السمة (المتغير المفسّر)',s:{ar:'عمود في جدول البيانات يصف الحالة: الدخل، السن، نسبة الدين. النموذج يتعلم العلاقة بين السمات والوسم.',en:'A column in the data table describing the case: income, age, debt ratio. The model learns the relation between features and label.'},c:{ar:'اختيار السمات عمل اقتصادي: سمة بلا معنى اقتصادي تعطي نموذجًا هشًا.',en:'Choosing features is economic work: a feature with no economic meaning gives a brittle model.'}},
+      {en:'Label (target)',fr:'Étiquette / variable cible',ar:'الوسم (الهدف)',s:{ar:'العمود الذي نريد التنبؤ به: تعثر/سداد، سعر، فئة. في التعلم الموجّه يكون معروفًا في بيانات الماضي.',en:'The column we want to predict: default/repaid, price, category. In supervised learning it is known in past data.'},c:{ar:'إن كان الوسم نفسه منحازًا (قرارات رفض قديمة) تعلّم النموذج الانحياز.',en:'If the label itself is biased (old rejection decisions), the model learns the bias.'}},
+      {en:'Training / Validation / Test sets',fr:'Ensembles d’entraînement / validation / test',ar:'مجموعات التدريب والتحقق والاختبار',s:{ar:'نقسم البيانات: التدريب لتعلم المعاملات، التحقق لضبط الإعدادات، الاختبار للحكم النهائي على بيانات لم يرها النموذج.',en:'We split the data: training to learn parameters, validation to tune settings, test for the final verdict on data the model never saw.'},c:{ar:'قياس النموذج على بيانات تدريبه كامتحان بأسئلة مسرّبة.',en:'Measuring a model on its training data is an exam with leaked questions.'}},
+      {en:'Loss function (error)',fr:'Fonction de perte',ar:'دالة الخسارة (الخطأ)',s:{ar:'رقم واحد يقيس بُعد تنبؤات النموذج عن الحقيقة؛ التدريب كله محاولة تصغيره.',en:'A single number measuring how far the model\'s predictions are from the truth; training is the attempt to shrink it.'},c:{ar:'اختيار دالة الخسارة قرار: خطأ الرفض الخاطئ والقبول الخاطئ قد لا يتساويان في التكلفة.',en:'Choosing the loss is a decision: a wrong rejection and a wrong acceptance may not cost the same.'}},
+      {en:'Gradient descent',fr:'Descente de gradient',ar:'الانحدار التدرجي',s:{ar:'طريقة التحسين: في كل خطوة نعدّل المعاملات قليلًا في الاتجاه الذي يقلل الخسارة، كنزول جبل في الضباب باتباع الميل.',en:'The optimisation method: at each step we nudge the parameters slightly in the direction that lowers the loss, like descending a mountain in fog by following the slope.'},c:{ar:'لا علاقة له بالانحدار الإحصائي (Regression) رغم تشابه الاسم بالعربية.',en:'Unrelated to statistical regression despite the similar Arabic name.'}}],
+    activity:{id:'ranker',title:{ar:'رتّب خط الإنتاج',en:'Order the production line'},intro:{ar:'اضغط المراحل بالترتيب الصحيح من الأولى إلى الأخيرة.',en:'Tap the stages in the right order, first to last.'},
+      items:[{t:{ar:'التقييم على بيانات الاختبار',en:'Evaluate on the test data'},why:{ar:'بعد التدريب فقط، وعلى بيانات لم يرها النموذج.',en:'Only after training, and on data the model never saw.'}},
+             {t:{ar:'جمع الأمثلة من الماضي',en:'Gather past examples'},why:{ar:'لا تعلم بلا بيانات.',en:'No learning without data.'}},
+             {t:{ar:'المراقبة وإعادة التدريب',en:'Monitor and retrain'},why:{ar:'الواقع يتغير فيتدهور النموذج؛ الدورة لا تنتهي.',en:'Reality changes and the model decays; the cycle never ends.'}},
+             {t:{ar:'تحضير السمات وتنظيف البيانات',en:'Prepare features and clean the data'},why:{ar:'القمامة تدخل، القمامة تخرج.',en:'Garbage in, garbage out.'}},
+             {t:{ar:'النشر على الحالات الجديدة',en:'Deploy on new cases'},why:{ar:'بعد أن يثبت النموذج جدارته على الاختبار.',en:'After the model proves itself on the test set.'}},
+             {t:{ar:'التدريب: النموذج يعدّل معاملاته لتقليل الخسارة',en:'Training: the model adjusts its parameters to reduce the loss'},why:{ar:'على مجموعة التدريب وحدها.',en:'On the training set alone.'}}],
+      answer:[1,3,5,0,4,2]},
+    qs:[
+      {k:'mcq',q:{ar:'في جدول طلبات القروض، عمود «سدد/تعثر» هو:',en:'In a loan-application table, the column "repaid/defaulted" is:'},o:{ar:['سمة','وسم (الهدف)','دالة الخسارة','مجموعة اختبار'],en:['A feature','The label (target)','The loss function','A test set']},a:1,w:{ar:'الوسم هو ما نريد التنبؤ به.',en:'The label is what we want to predict.'}},
+      {k:'tf',q:{ar:'نقيس جودة النموذج على البيانات نفسها التي تدرب عليها.',en:'We measure a model\'s quality on the same data it was trained on.'},a:false,w:{ar:'نقيسه على بيانات اختبار لم يرها؛ وإلا كافأنا الحفظ.',en:'We measure it on test data it never saw; otherwise we reward memorisation.'}},
+      {k:'mcq',q:{ar:'الانحدار التدرجي هو:',en:'Gradient descent is:'},o:{ar:['طريقة تحسين تعدّل المعاملات تدريجيًا لتقليل الخسارة','نوع من الانحدار الإحصائي','طريقة لتقسيم البيانات','مقياس للدقة'],en:['An optimisation method that nudges parameters to reduce the loss','A kind of statistical regression','A way to split data','An accuracy measure']},a:0,w:{ar:'كنزول جبل في الضباب باتباع الميل.',en:'Like descending a mountain in fog by following the slope.'}}]},
+
+  { id:'s2', n:'2', t:{ar:'درّب المصنِّف بيدك',en:'Train the classifier by hand'}, y:{ar:'التصنيف ومصفوفة الارتباك',en:'Classification and the confusion matrix'},
+    story:{ar:['أبسط نموذج تصنيف ائتماني: <b>عتبة</b> على سمة واحدة. «ارفض الطلب إذا تجاوزت نسبة الدين إلى الدخل كذا». أين نضع العتبة؟ هذا بالضبط ما يفعله التدريب آليًا؛ وستفعله أنت يدويًا في النشاط.',
+      'لكل عتبة أربعة أنواع من النتائج تُلخَّص في <b>مصفوفة الارتباك (Confusion matrix)</b>: متعثر رُفض (صواب)، مسدِّد قُبل (صواب)، مسدِّد رُفض (خطأ يكلف زبونًا جيدًا)، متعثر قُبل (خطأ يكلف قرضًا ضائعًا). منها نحسب <b>الدقة (Accuracy)</b>: نسبة الإصابات الكلية؛ <b>الضبط (Precision)</b>: من بين من رفضناهم، كم كان متعثرًا فعلًا؛ <b>الاستدعاء (Recall)</b>: من بين المتعثرين فعلًا، كم أمسكنا.',
+      'لا توجد عتبة تحسّن كل شيء: رفع العتبة يقبل أكثر (ضبط أعلى، استدعاء أدنى)، وخفضها يرفض أكثر (استدعاء أعلى، ضبط أدنى). الاختيار قرار اقتصادي: ما تكلفة كل خطأ للبنك؟'],
+      en:['The simplest credit classifier: a <b>threshold</b> on one feature. "Reject the application if the debt-to-income ratio exceeds X." Where do we put the threshold? That is exactly what training does automatically, and what you will do by hand in the activity.',
+      'For every threshold there are four kinds of outcome, summarised in the <b>confusion matrix</b>: defaulter rejected (right), repayer accepted (right), repayer rejected (an error that costs a good customer), defaulter accepted (an error that costs a lost loan). From it we compute <b>accuracy</b>: the overall hit rate; <b>precision</b>: of those we rejected, how many really defaulted; <b>recall</b>: of the real defaulters, how many we caught.',
+      'No threshold improves everything: raising it accepts more (higher precision, lower recall); lowering it rejects more (higher recall, lower precision). The choice is economic: what does each error cost the bank?']},
+    lesson:{ar:'«الدقة 90%» بلا مصفوفة ارتباك رقم بلا معنى: إن كان 90% من الزبائن يسددون، فنموذج يقبل الجميع دقته 90% ولا يكشف متعثرًا واحدًا.',en:'"90% accuracy" without a confusion matrix is meaningless: if 90% of customers repay, a model that accepts everyone is 90% accurate and catches no defaulter at all.'},
+    terms:[
+      {en:'Classification',fr:'Classification',ar:'التصنيف',s:{ar:'تنبؤ بفئة: مزعج/غير مزعج، سيتعثر/لن يتعثر، أي من ثلاث شرائح.',en:'Predicting a category: spam/not spam, will default/will not, which of three segments.'},c:{ar:'الانحدار اللوجستي خوارزمية تصنيف رغم اسمها.',en:'Logistic regression is a classification algorithm despite its name.'}},
+      {en:'Regression',fr:'Régression',ar:'الانحدار',s:{ar:'تنبؤ برقم مستمر: سعر عقار، مبيعات الشهر القادم، استهلاك الكهرباء.',en:'Predicting a continuous number: a property price, next month\'s sales, electricity consumption.'},c:{ar:'السؤال الفاصل: هل الجواب فئة أم رقم؟',en:'The deciding question: is the answer a category or a number?'}},
+      {en:'Confusion matrix',fr:'Matrice de confusion',ar:'مصفوفة الارتباك',s:{ar:'جدول 2×2 يقارن تنبؤات النموذج بالحقيقة: إصابتان ونوعان من الخطأ.',en:'A 2×2 table comparing predictions to the truth: two kinds of hit and two kinds of error.'},c:{ar:'الدقة وحدها تخفي نوع الخطأ؛ المصفوفة تكشفه.',en:'Accuracy alone hides the kind of error; the matrix reveals it.'}},
+      {en:'Precision / Recall',fr:'Précision / Rappel',ar:'الضبط / الاستدعاء',s:{ar:'الضبط: من الذين أعلنهم النموذج «متعثرين» كم كان كذلك فعلًا. الاستدعاء: من المتعثرين الحقيقيين كم أمسك النموذج.',en:'Precision: of those the model called "defaulters", how many really were. Recall: of the real defaulters, how many the model caught.'},c:{ar:'رفع أحدهما يخفض الآخر غالبًا؛ الموازنة قرار إداري.',en:'Raising one usually lowers the other; the balance is a management decision.'}},
+      {en:'Decision tree / Random forest',fr:'Arbre de décision / Forêt aléatoire',ar:'شجرة القرار / الغابة العشوائية',s:{ar:'الشجرة: سلسلة أسئلة نعم/لا تتعلمها الآلة من البيانات. الغابة: مئات الأشجار تصوّت معًا، أدق وأقل هشاشة.',en:'A tree: a chain of yes/no questions the machine learns from data. A forest: hundreds of trees voting together, more accurate and less brittle.'},c:{ar:'الشجرة قابلة للتفسير كليًا؛ الغابة أقل.',en:'A tree is fully interpretable; a forest less so.'}}],
+    activity:{id:'classifier',title:{ar:'العتبة الائتمانية',en:'The credit threshold'}},
+    qs:[
+      {k:'mcq',q:{ar:'بنك فيه 95% من الزبائن يسددون. نموذج يقبل الجميع:',en:'A bank where 95% of customers repay. A model that accepts everyone:'},o:{ar:['دقته 95% واستدعاؤه للمتعثرين 0%','دقته 5%','ممتاز في كشف التعثر','له ضبط 100%'],en:['Has 95% accuracy and 0% recall on defaulters','Has 5% accuracy','Is excellent at catching default','Has 100% precision']},a:0,w:{ar:'الدقة تخدع حين تكون الفئات غير متوازنة.',en:'Accuracy misleads when classes are imbalanced.'}},
+      {k:'mcq',q:{ar:'خفض العتبة (رفض المزيد من الطلبات) يؤدي عادة إلى:',en:'Lowering the threshold (rejecting more applications) usually leads to:'},o:{ar:['استدعاء أعلى وضبط أدنى','ضبط أعلى واستدعاء أدنى','لا تغيير','دقة 100%'],en:['Higher recall and lower precision','Higher precision and lower recall','No change','100% accuracy']},a:0,w:{ar:'نمسك متعثرين أكثر لكننا نرفض مسدِّدين أكثر.',en:'We catch more defaulters but reject more repayers.'}},
+      {k:'mcq',q:{ar:'توقع سعر شقة بالدينار مسألة:',en:'Predicting a flat\'s price in dinars is a:'},o:{ar:['تصنيف','انحدار','تجميع','كشف شذوذ'],en:['Classification','Regression','Clustering','Anomaly detection']},a:1,w:{ar:'الجواب رقم مستمر.',en:'The answer is a continuous number.'}}]},
+
+  { id:'s3', n:'3', t:{ar:'هل تعلّم النموذج أم حفظ؟',en:'Did the model learn, or memorise?'}, y:{ar:'الإفراط في التكيّف والتعميم',en:'Overfitting and generalisation'},
+    story:{ar:['نموذج معقد جدًا يستطيع أن <b>يحفظ</b> بيانات التدريب حرفيًا، بما فيها الضوضاء والصدف، فيحقق دقة 99% عليها ثم ينهار على زبائن جدد. هذا <b>الإفراط في التكيّف (Overfitting)</b>. والعكس نموذج أبسط من اللازم لا يلتقط النمط أصلًا. المطلوب <b>التعميم (Generalization)</b>: أداء جيد على ما لم يره.',
+      'الكاشف الوحيد الموثوق: الفجوة بين دقة التدريب ودقة الاختبار. فجوة كبيرة = حفظ. ومن أخطر أسباب الدقة الوهمية <b>تسرب البيانات (Data leakage)</b>: أن تدخل في السمات معلومة لا تكون متاحة وقت التنبؤ الحقيقي (مثلًا «عدد مكالمات التحصيل» وهي تحدث بعد التعثر).',
+      'الشبكات العصبية العميقة أكثر النماذج قدرة على الحفظ؛ لذلك تحتاج بيانات ضخمة وتقنيات تمنع الإفراط. وعلى البيانات المجدولة الصغيرة (ملفات بنك) كثيرًا ما تتفوق الغابة العشوائية أو الانحدار اللوجستي عليها.'],
+      en:['A very complex model can <b>memorise</b> the training data literally, noise and coincidences included, reach 99% on it and then collapse on new customers. That is <b>overfitting</b>. The opposite, a model too simple to capture the pattern at all. What we want is <b>generalisation</b>: good performance on what it never saw.',
+      'The only reliable detector: the gap between training accuracy and test accuracy. A big gap = memorisation. And one of the most dangerous sources of illusory accuracy is <b>data leakage</b>: a feature that carries information unavailable at real prediction time (say "number of collection calls", which happen after default).',
+      'Deep neural networks are the models most able to memorise; hence they need huge data and anti-overfitting techniques. On small tabular data (bank files), a random forest or logistic regression often beats them.']},
+    lesson:{ar:'النموذج الذي نجح سنة 2023 لن ينجح دائمًا: الواقع ينجرف، وفجوة التدريب/الاختبار تُقاس كل مرة.',en:'The model that worked in 2023 will not work forever: reality drifts, and the train/test gap must be measured every time.'},
+    terms:[
+      {en:'Overfitting',fr:'Surapprentissage',ar:'الإفراط في التكيّف',s:{ar:'النموذج يحفظ بيانات التدريب بضوضائها فيبدو ممتازًا عليها ويفشل على الجديد.',en:'The model memorises the training data, noise included, looks excellent on it and fails on new data.'},c:{ar:'ليس «تدريبًا زائدًا» بالمعنى الحرفي؛ هو تعقيد زائد نسبةً إلى البيانات.',en:'Not literally "too much training"; it is too much complexity relative to the data.'}},
+      {en:'Generalization',fr:'Généralisation',ar:'التعميم',s:{ar:'قدرة النموذج على الأداء الجيد على حالات لم يرها في التدريب؛ الهدف الحقيقي من كل تعلم.',en:'The model\'s ability to perform well on cases it never saw in training; the true goal of all learning.'},c:{ar:'يُقاس على الاختبار فقط.',en:'Measured on the test set only.'}},
+      {en:'Data leakage',fr:'Fuite de données',ar:'تسرب البيانات',s:{ar:'دخول معلومة في التدريب لا تكون متاحة وقت التنبؤ الفعلي، فتعطي دقة وهمية.',en:'Information entering training that will not be available at real prediction time, giving illusory accuracy.'},c:{ar:'أشهر سبب لنماذج «ممتازة» في المختبر فاشلة في الواقع.',en:'The most common reason for models "excellent" in the lab and useless in the field.'}},
+      {en:'Neural network',fr:'Réseau de neurones',ar:'الشبكة العصبية',s:{ar:'طبقات من خلايا اصطناعية؛ كل طبقة تحوّل مدخلها إلى تمثيل أنفع للطبقة التالية.',en:'Layers of artificial neurons; each layer transforms its input into a representation more useful to the next.'},c:{ar:'ليست دائمًا أفضل؛ على الجداول الصغيرة تخسر غالبًا أمام الغابة العشوائية.',en:'Not always better; on small tables it usually loses to a random forest.'}},
+      {en:'Weights and parameters',fr:'Poids et paramètres',ar:'الأوزان والمعاملات',s:{ar:'الأرقام التي يعدّلها التدريب؛ «175 مليار معامل» تعني 175 مليار رقم من هذا النوع.',en:'The numbers training adjusts; "175 billion parameters" means 175 billion such numbers.'},c:{ar:'عدد المعاملات ليس مقياسًا للذكاء بل للسعة.',en:'Parameter count measures capacity, not intelligence.'}},
+      {en:'Hidden layer / Activation',fr:'Couche cachée / Activation',ar:'الطبقة الخفية / دالة التنشيط',s:{ar:'الطبقات بين المدخل والمخرج؛ دالة التنشيط تقرر هل «تطلق» الخلية إشارتها، وهي ما يسمح بتعلم علاقات غير خطية.',en:'The layers between input and output; the activation function decides whether a neuron "fires", which allows non-linear relations to be learned.'},c:{ar:'«خفية» لأننا لا نفسر ما تمثله مباشرة.',en:'"Hidden" because we do not directly interpret what they represent.'}}],
+    activity:{id:'pickmodel',title:{ar:'ثلاثة نماذج، أيها تعتمد؟',en:'Three models: which do you deploy?'},intro:{ar:'درّبنا ثلاثة نماذج على ملفات القروض نفسها وقسناها على التدريب وعلى الاختبار. اختر ما تعتمده للزبائن الجدد.',en:'We trained three models on the same loan files and measured them on training and on test. Pick the one you would deploy on new customers.'},
+      models:[
+        {t:{ar:'بسيط',en:'Simple'},s:{ar:'عتبة على سمة واحدة',en:'One-feature threshold'},tr:76,te:75,good:false,why:{ar:'يعمّم جيدًا لكنه ضعيف: لا يلتقط النمط كله. فجوة صغيرة ودقة منخفضة = نقص في التكيّف.',en:'Generalises well but is weak: it misses much of the pattern. Small gap and low accuracy = underfitting.'}},
+        {t:{ar:'متوسط',en:'Medium'},s:{ar:'غابة عشوائية مضبوطة',en:'A tuned random forest'},tr:86,te:84,good:true,why:{ar:'أفضل اختيار: دقة اختبار أعلى وفجوة صغيرة؛ تعلّم النمط ولم يحفظ الضوضاء.',en:'The best choice: highest test accuracy and a small gap; it learned the pattern without memorising noise.'}},
+        {t:{ar:'معقد',en:'Complex'},s:{ar:'شبكة عميقة كبيرة',en:'A large deep network'},tr:99,te:71,good:false,why:{ar:'فخ الإفراط في التكيّف: 99% على التدريب و71% على الاختبار؛ حفظ ولم يتعلم. الرقم الأعلى على التدريب هو الأسوأ في الواقع.',en:'The overfitting trap: 99% on training and 71% on test; it memorised rather than learned. The highest training score is the worst in reality.'}}]},
+    qs:[
+      {k:'mcq',q:{ar:'نموذج دقته 99% على التدريب و70% على الاختبار:',en:'A model with 99% on training and 70% on test:'},o:{ar:['ممتاز','مفرط في التكيّف: حفظ ولم يتعلم','ناقص التكيّف','لا يمكن الحكم'],en:['Excellent','Overfitted: memorised rather than learned','Underfitted','Cannot tell']},a:1,w:{ar:'الفجوة الكبيرة هي العلامة.',en:'The large gap is the sign.'}},
+      {k:'mcq',q:{ar:'إدخال «عدد مكالمات التحصيل» سمةً للتنبؤ بالتعثر مثال على:',en:'Using "number of collection calls" as a feature to predict default is an example of:'},o:{ar:['تسرب البيانات','التعميم','التجميع','الانحدار'],en:['Data leakage','Generalisation','Clustering','Regression']},a:0,w:{ar:'المكالمات تحدث بعد التعثر؛ لن تكون متاحة وقت القرار.',en:'The calls happen after default; they will not exist at decision time.'}},
+      {k:'tf',q:{ar:'الشبكة العصبية العميقة أفضل دائمًا من الغابة العشوائية.',en:'A deep neural network is always better than a random forest.'},a:false,w:{ar:'على الجداول الصغيرة تخسر غالبًا؛ تتفوق في الصور والنصوص.',en:'On small tables it usually loses; it wins on images and text.'}}]},
+
+  { id:'s4', n:'4', t:{ar:'الأداة المناسبة لكل مشكلة',en:'The right tool for each problem'}, y:{ar:'موجّه، غير موجّه، والبيانات أولًا',en:'Supervised, unsupervised, and data first'},
+    story:{ar:['<b>التعلم الموجّه (Supervised)</b>: لدينا الوسم في الماضي (سدد/تعثر، السعر) فنتعلم التنبؤ به: تصنيف أو انحدار. <b>التعلم غير الموجّه (Unsupervised)</b>: لا وسم؛ نبحث عن بنية خفية: <b>التجميع (Clustering)</b> يقسّم الزبائن إلى شرائح متشابهة لم نسمّها مسبقًا، و<b>كشف الشذوذ (Anomaly detection)</b> يلتقط ما يخرج عن المألوف (عملية احتيال، عطل).',
+      'قاعدة المصنع الأولى: <b>القمامة تدخل، القمامة تخرج (Garbage in, garbage out)</b>. 80% من وقت مشروع التعلم الآلي يذهب إلى البيانات: جمعها، تنظيفها، فهم ما ينقص ومن ليس فيها. أفضل خوارزمية على بيانات سيئة أسوأ من خوارزمية بسيطة على بيانات جيدة.',
+      'وتذكر أن التجميع يعطيك مجموعات أرقام لا أسماء: من يقول «هذه شريحة الشباب الحضري» هو الاقتصادي الذي يفسرها.'],
+      en:['<b>Supervised learning</b>: we have the label in the past (repaid/defaulted, the price) and learn to predict it: classification or regression. <b>Unsupervised learning</b>: no label; we look for hidden structure: <b>clustering</b> splits customers into similar segments we never named in advance, and <b>anomaly detection</b> catches what departs from the usual (a fraudulent transaction, a fault).',
+      'The factory\'s first rule: <b>garbage in, garbage out</b>. 80% of a machine-learning project goes into data: gathering, cleaning, understanding what is missing and who is not in it. The best algorithm on bad data is worse than a simple algorithm on good data.',
+      'And remember that clustering gives you numbered groups, not names: the one who says "this is the urban-youth segment" is the economist who interprets them.']},
+    lesson:{ar:'غير الموجّه لا يعني «بلا إشراف بشري»: يعني بلا وسم في البيانات؛ والتفسير كله بشري.',en:'Unsupervised does not mean "without human supervision": it means without a label in the data; all interpretation is human.'},
+    terms:[
+      {en:'Clustering',fr:'Partitionnement (clustering)',ar:'التجميع',s:{ar:'تقسيم الحالات إلى مجموعات متشابهة داخليًا ومختلفة فيما بينها دون وسم مسبق.',en:'Splitting cases into groups similar within and different between, with no prior label.'},c:{ar:'المجموعات بلا أسماء؛ تسميتها وتفسيرها عمل الاقتصادي.',en:'The groups have no names; naming and interpreting them is the economist\'s job.'}},
+      {en:'Anomaly detection',fr:'Détection d’anomalies',ar:'كشف الشذوذ',s:{ar:'تعلم «ما هو عادي» ثم الإنذار عند ما يخرج عنه؛ أساس كشف الاحتيال والأعطال.',en:'Learning "what is normal" and then flagging what departs from it; the basis of fraud and fault detection.'},c:{ar:'الشاذ ليس دائمًا احتيالًا؛ هو ما يستحق نظرة بشرية.',en:'An anomaly is not always fraud; it is what deserves a human look.'}},
+      {en:'Garbage in, garbage out',fr:'Données erronées, résultats erronés',ar:'القمامة تدخل، القمامة تخرج',s:{ar:'جودة النموذج محدودة بجودة بياناته مهما كانت الخوارزمية.',en:'A model\'s quality is capped by its data\'s quality whatever the algorithm.'},c:{ar:'المشكلة غالبًا في البيانات لا في الخوارزمية.',en:'The problem is usually the data, not the algorithm.'}}],
+    activity:{id:'sorter',title:{ar:'أي أداة لأي مشكلة؟',en:'Which tool for which problem?'},rounds:[
+      {title:{ar:'ضع كل مشكلة اقتصادية في نوع التعلم المناسب',en:'Place each economic problem in the right kind of learning'},buckets:[
+        {id:'cls',t:{ar:'تصنيف (موجّه)',en:'Classification (supervised)'}},{id:'reg',t:{ar:'انحدار (موجّه)',en:'Regression (supervised)'}},{id:'clu',t:{ar:'تجميع (غير موجّه)',en:'Clustering (unsupervised)'}},{id:'ano',t:{ar:'كشف شذوذ',en:'Anomaly detection'}}],
+       items:[
+        {t:{ar:'هل سيتعثر هذا الطلب؟',en:'Will this application default?'},b:'cls',why:{ar:'فئتان ووسم معروف في الماضي.',en:'Two classes and a known past label.'}},
+        {t:{ar:'كم سيبلغ استهلاك الكهرباء غدًا؟',en:'How much electricity will be consumed tomorrow?'},b:'reg',why:{ar:'رقم مستمر.',en:'A continuous number.'}},
+        {t:{ar:'ما شرائح زبائننا الطبيعية؟',en:'What are our natural customer segments?'},b:'clu',why:{ar:'لا وسم؛ نبحث عن بنية.',en:'No label; we look for structure.'}},
+        {t:{ar:'هل هذه العملية البنكية غير مألوفة؟',en:'Is this bank transaction unusual?'},b:'ano',why:{ar:'نتعلم العادي ونُنذر عند الخروج عنه.',en:'Learn the normal, flag the departure.'}},
+        {t:{ar:'ما سعر هذه الشقة المناسب؟',en:'What is the right price for this flat?'},b:'reg',why:{ar:'رقم.',en:'A number.'}},
+        {t:{ar:'هل هذا البريد مزعج؟',en:'Is this email spam?'},b:'cls',why:{ar:'فئتان.',en:'Two classes.'}},
+        {t:{ar:'أي المنتجات تُشترى معًا؟',en:'Which products are bought together?'},b:'clu',why:{ar:'بنية خفية بلا وسم (تجميع/قواعد الاقتران).',en:'Hidden structure with no label (clustering/association).'}},
+        {t:{ar:'هل قراءة هذا العداد الصناعي تنذر بعطل؟',en:'Does this industrial sensor reading signal a fault?'},b:'ano',why:{ar:'خروج عن النمط العادي.',en:'A departure from the normal pattern.'}}]}]},
+    qs:[
+      {k:'tf',q:{ar:'التجميع يعطينا شرائح الزبائن جاهزة بأسمائها.',en:'Clustering gives us customer segments ready with their names.'},a:false,w:{ar:'يعطي مجموعات مرقمة؛ التسمية والتفسير للاقتصادي.',en:'It gives numbered groups; naming and interpretation are the economist\'s.'}},
+      {k:'mcq',q:{ar:'أين يذهب معظم وقت مشروع التعلم الآلي عمليًا؟',en:'Where does most of a machine-learning project\'s time go in practice?'},o:{ar:['اختيار الخوارزمية','جمع البيانات وتنظيفها وفهمها','شراء الحاسوب','كتابة التقرير'],en:['Choosing the algorithm','Gathering, cleaning and understanding the data','Buying the computer','Writing the report']},a:1,w:{ar:'نحو 80%؛ القمامة تدخل، القمامة تخرج.',en:'About 80%; garbage in, garbage out.'}},
+      {k:'mcq',q:{ar:'«غير موجّه» يعني:',en:'"Unsupervised" means:'},o:{ar:['بلا إشراف بشري','بلا وسم في بيانات التدريب','بلا بيانات','بلا حاسوب'],en:['Without human supervision','Without a label in the training data','Without data','Without a computer']},a:1,w:{ar:'الإشراف البشري على التفسير يبقى كاملًا.',en:'Human supervision of the interpretation remains total.'}}]}
+  ],
+  final:{rows:{ar:[
+    ['خط الإنتاج','بيانات ← سمات ووسم ← تقسيم تدريب/اختبار ← تدريب بتقليل الخسارة ← تقييم على الاختبار ← نشر ومراقبة؛ دورة لا خط.'],
+    ['التصنيف','العتبة قرار اقتصادي: الضبط والاستدعاء يتبادلان، ومصفوفة الارتباك تكشف ما تخفيه «الدقة».'],
+    ['الحفظ مقابل التعلم','فجوة التدريب/الاختبار هي الكاشف؛ احذر تسرب البيانات، ولا تفترض أن الأعقد أفضل.'],
+    ['الأداة المناسبة','فئة ← تصنيف؛ رقم ← انحدار؛ بلا وسم ← تجميع أو كشف شذوذ؛ وفي كل الأحوال: البيانات أولًا.']],
+    en:[
+    ['The production line','Data → features and label → train/test split → training by reducing loss → evaluation on test → deploy and monitor; a circle, not a line.'],
+    ['Classification','The threshold is an economic decision: precision and recall trade off, and the confusion matrix reveals what "accuracy" hides.'],
+    ['Memorising vs learning','The train/test gap is the detector; beware data leakage, and never assume the more complex model is better.'],
+    ['The right tool','Category → classification; number → regression; no label → clustering or anomaly detection; and always: data first.']]},
+   question:{ar:'بنك يفضّل رفض عشرة مسدِّدين على قبول متعثر واحد. أين يضع عتبته: عالية أم منخفضة؟ ولماذا هذا قرار اقتصادي لا تقني؟',en:'A bank would rather reject ten repayers than accept one defaulter. Where should it set its threshold, high or low? And why is that an economic rather than a technical decision?'}}
+});
+</script>
+</body>
+</html>
