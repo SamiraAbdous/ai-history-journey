@@ -61,7 +61,7 @@ const UI={
         committee:['The Credit Committee','Topics 11, 12 & 13','A three-act simulation: fairness, data and security, human oversight']}}
 };
 const MODS=[{slug:'types',ic:'🧭',n:4},{slug:'history',ic:'🗺️',n:10},{slug:'ml-factory',ic:'🏭',n:4},{slug:'llm',ic:'🧠',n:4},{slug:'prompts',ic:'🛠️',n:4},{slug:'generation',ic:'🧪',n:4},{slug:'manager',ic:'📈',n:4},{slug:'committee',ic:'⚖️',n:3}];
-const READY=new Set(['history']);
+const READY=new Set(['types','history','ml-factory','llm','prompts']);
 let lang='ar';
 try{const l=localStorage.getItem('course:lang');if(l==='en'||l==='ar')lang=l;}catch(e){}
 function prog(slug,n){try{const r=localStorage.getItem('course:'+slug);if(!r)return{d:0,s:0};const o=JSON.parse(r);return{d:Object.keys(o.done||{}).length,s:o.score||0};}catch(e){return{d:0,s:0};}}
