@@ -17,7 +17,7 @@ window.Course = (function () {
       greets: ['أهلًا بك. تقدمك يُحفظ على هذا الجهاز، والخطأ ليس عقوبة بل شرح ومحاولة أخرى.', 'مرحبًا. اقرأ الشرح، اقلب المصطلحات، جرّب النشاط، ثم اختبر نفسك.'],
       hello: 'مرحبًا', resume: (d, n, s) => `واصل من حيث توقفت: أكملت ${d} من ${n} مراحل برصيد ${s} نقطة.`, chgName: 'تغيير الاسم',
       finalTitle: (n, sc, st) => `${n ? n + '، ' : ''}أكملت الوحدة: ${sc} نقطة · ${st} نجمة`, finalIntro: 'الخلاصة التي تحفظها:', finalH: ['المحور', 'الجملة'], finalQ: 'سؤال للنقاش في الحصة:',
-      foot: 'د. سميرة عبدوس · جامعة أمحمد بوقرة بومرداس' },
+      foot: '© 2026 د. سميرة عبدوس · جامعة أمحمد بوقرة بومرداس · جميع الحقوق محفوظة؛ يُمنع نسخ هذه الوحدات أو إعادة نشرها أو استعمالها خارج المقياس دون إذن كتابي من المؤلفة.' },
     en: { eyebrow: 'Introduction to Artificial Intelligence', byline: 'Prepared by Dr. Samira Abdous', home: '⌂ Module index',
       nameLabel: 'Type your name to start (stages stay locked until you do)', namePh: 'e.g. Yasmine Benali', start: 'Start', points: 'points', stars: 'stars', stages: 'stages', howTitle: 'How this module works',
       locked: 'Complete the previous stage first', needName: 'Type your name first', lockedAria: '(locked)', reset: 'Restart this module', resetArm: 'Tap again to confirm: your progress in this module will be erased',
@@ -29,7 +29,7 @@ window.Course = (function () {
       greets: ['Welcome. Your progress is saved on this device, and a mistake is not a penalty but an explanation and another try.', 'Hello. Read the explanation, flip the terms, try the activity, then test yourself.'],
       hello: 'Welcome', resume: (d, n, s) => `Pick up where you left off: ${d} of ${n} stages done, ${s} points.`, chgName: 'Change name',
       finalTitle: (n, sc, st) => `${n ? n + ', ' : ''}module complete: ${sc} points · ${st} stars`, finalIntro: 'The summary to remember:', finalH: ['Topic', 'Sentence'], finalQ: 'Question for class discussion:',
-      foot: "Dr. Samira Abdous · University M'hamed Bougara of Boumerdes" }
+      foot: "© 2026 Dr. Samira Abdous · University M'hamed Bougara of Boumerdes · All rights reserved; copying, republishing or using these modules outside the course without the author's written permission is prohibited." }
   };
   const AB = { ar: ['أ', 'ب', 'ج', 'د', 'هـ', 'و'], en: ['A', 'B', 'C', 'D', 'E', 'F'] };
   const widgets = {};
