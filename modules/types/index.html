@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ما الذكاء الاصطناعي؟ وأي نوع أمامك؟</title>
+<meta name="description" content="لعبة فرز تفاعلية: تصنيف أنظمة حقيقية لفهم ما الذكاء الاصطناعي وأنواعه — من إعداد د. سميرة عبدوس.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Changa:wght@600;700;800&family=Tajawal:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="../../assets/app.css">
+<style>:root{--accent:#1F6E8C;--accent-soft:#DCEFF5;--gold:#C9961A}@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--accent:#5BB3D1;--accent-soft:#163542}}</style>
+</head>
+<body>
+<script src="../../assets/engine.js"></script>
+<script src="../../assets/widgets.js"></script>
+<script>
+Course.init({
+  slug:'types',
+  lectures:{ar:'المحوران 1 و3',en:'Topics 1 & 3'},
+  title:{ar:'ما الذكاء الاصطناعي؟ وأي نوع أمامك؟',en:'What is AI, and which kind is this?'},
+  sub:{ar:'لعبة فرز في أربع مراحل: تضع أنظمة حقيقية في سلالها الصحيحة، فتتعلم الفرق بين الحساب والتعلم، وبين الضيق والعام، وبين التمييزي والتوليدي، وبين المساعد والوكيل.',en:'A four-stage sorting game: you put real systems in the right buckets and learn the difference between calculation and learning, narrow and general, discriminative and generative, assistant and agent.'},
+  how:{ar:['في كل مرحلة: اقرأ الشرح، اقلب بطاقات المصطلحات، ثم افرز العناصر في النشاط (اضغط العنصر ثم السلة).','بعد الفرز اضغط «تحقق»: الأخطاء تظهر مع سببها، وتُحتسب الإصابات نقاطًا.','أجب عن أسئلة التحدي لفتح المرحلة التالية. تقدمك يُحفظ على هذا الجهاز.'],
+       en:['At each stage: read the explanation, flip the term cards, then sort the items in the activity (tap an item, then a bucket).','After sorting press "Check": mistakes appear with their reason, and correct placements count as points.','Answer the challenge questions to unlock the next stage. Progress is saved on this device.']},
+  sections:[
+  { id:'s1', n:'1', t:{ar:'ذكي أم مجرد سريع؟',en:'Intelligent, or just fast?'}, y:{ar:'المحور 1: تعريف العمل',en:'Topic 1: a working definition'},
+    story:{ar:[
+      'أبسط تعريف عملي: <b>الذكاء الاصطناعي (Artificial Intelligence)</b> هو جعل الحاسوب يؤدي مهمة كنا نظن أنها تحتاج ذكاءً بشريًا: التعرف على وجه، فهم جملة، اقتراح قرار. التعريف يتغير مع الزمن: ما كان «ذكاءً» سنة 1970 (حساب أقصر طريق) صار «برمجة عادية» اليوم.',
+      'الفرق الذي يهم الاقتصادي ليس «هل الحاسوب سريع؟» بل <b>من كتب القاعدة؟</b> في <b>البرمجة التقليدية (Traditional programming)</b> يكتب الإنسان القواعد كلها (إذا كان الدخل أقل من كذا فارفض). في <b>التعلم من البيانات (Learning from data)</b> يعطي الإنسان أمثلة من الماضي والآلة تستخرج القاعدة بنفسها. وبينهما <b>الأنظمة الخبيرة (Expert systems)</b>: قواعد كثيرة يكتبها خبراء بشر.'],
+      en:[
+      'The simplest working definition: <b>Artificial Intelligence</b> is making a computer do a task we thought needed human intelligence: recognising a face, understanding a sentence, suggesting a decision. The definition moves with time: what counted as "intelligence" in 1970 (finding the shortest route) is "ordinary programming" today.',
+      'The difference that matters to an economist is not "is the computer fast?" but <b>who wrote the rule?</b> In <b>traditional programming</b> a human writes every rule (if income is below X, reject). In <b>learning from data</b> the human supplies past examples and the machine extracts the rule itself. In between sit <b>expert systems</b>: many rules written by human experts.']},
+    lesson:{ar:'السرعة ليست ذكاءً. آلة حاسبة تحسب أسرع منك مليون مرة ولا تتعلم شيئًا.',en:'Speed is not intelligence. A calculator computes a million times faster than you and learns nothing.'},
+    terms:[
+      {en:'Artificial Intelligence (AI)',fr:'Intelligence artificielle (IA)',ar:'الذكاء الاصطناعي',s:{ar:'جعل الحاسوب يؤدي مهامًا كانت تُعدّ حكرًا على الذكاء البشري؛ اليوم يعني غالبًا أنظمة تتعلم من البيانات.',en:'Making a computer perform tasks once thought to need human intelligence; today it mostly means systems that learn from data.'},c:{ar:'ليس روبوتًا يشبه الإنسان؛ أغلب الذكاء الاصطناعي برامج بلا جسد.',en:'Not a humanoid robot; most AI is software with no body.'}},
+      {en:'Algorithm',fr:'Algorithme',ar:'الخوارزمية',s:{ar:'سلسلة خطوات محددة لحل مسألة، كوصفة الطبخ. كل برنامج خوارزمية، لكن ليس كل خوارزمية ذكاءً اصطناعيًا.',en:'A fixed sequence of steps that solves a problem, like a recipe. Every program is an algorithm, but not every algorithm is AI.'},c:{ar:'«خوارزمية التوصية» في التطبيقات تعلم آلي؛ «خوارزمية الجمع» حساب عادي.',en:'A "recommendation algorithm" in apps is machine learning; an "addition algorithm" is plain computation.'}},
+      {en:'Model',fr:'Modèle',ar:'النموذج',s:{ar:'ما ينتج عن التعلم: دالة رياضية بمعاملات ضُبطت على الأمثلة، تأخذ مدخلًا جديدًا وتعطي تنبؤًا.',en:'What learning produces: a mathematical function whose parameters were tuned on examples; it takes a new input and gives a prediction.'},c:{ar:'النموذج غير البيانات: البيانات هي الأمثلة، والنموذج ما تعلّمه منها.',en:'The model is not the data: the data are the examples, the model is what was learned from them.'}},
+      {en:'Training data',fr:'Données d’entraînement',ar:'بيانات التدريب',s:{ar:'الأمثلة من الماضي التي يتعلم منها النموذج: ملفات قروض سابقة مع نتيجتها، صور مصنفة، نصوص.',en:'The past examples the model learns from: previous loan files with their outcome, labelled images, texts.'},c:{ar:'إن كانت بيانات التدريب منحازة أو قليلة فالنموذج يرث ذلك مهما كانت الخوارزمية ذكية.',en:'If the training data are biased or scarce, the model inherits that however clever the algorithm.'}}],
+    activity:{id:'sorter',title:{ar:'فرز: من كتب القاعدة؟',en:'Sort: who wrote the rule?'},rounds:[
+      {title:{ar:'ضع كل نظام في سلته',en:'Put each system in its bucket'},buckets:[
+        {id:'calc',t:{ar:'حساب/برمجة تقليدية',en:'Calculation / traditional programming'},hint:{ar:'الإنسان كتب الخطوات كلها',en:'A human wrote every step'}},
+        {id:'rules',t:{ar:'ذكاء اصطناعي بقواعد خبير',en:'Rule-based AI (expert system)'},hint:{ar:'قواعد «إذا... فـ» كتبها خبراء',en:'If–then rules written by experts'}},
+        {id:'learn',t:{ar:'ذكاء اصطناعي يتعلم من البيانات',en:'AI that learns from data'},hint:{ar:'القاعدة مستخرجة من أمثلة',en:'The rule is extracted from examples'}}],
+       items:[
+        {t:{ar:'آلة حاسبة',en:'A calculator'},b:'calc',why:{ar:'تنفذ عمليات محددة سلفًا ولا تتعلم.',en:'Executes predefined operations and never learns.'}},
+        {t:{ar:'مرشّح البريد المزعج',en:'A spam filter'},b:'learn',why:{ar:'يتعلم من ملايين الرسائل المصنفة ما يميز المزعج.',en:'Learns from millions of labelled messages what marks spam.'}},
+        {t:{ar:'قاعدة بنكية: «إذا تجاوز السحب السقف اليومي فأوقف البطاقة»',en:'Bank rule: "if a withdrawal exceeds the daily limit, block the card"'},b:'rules',why:{ar:'قاعدة واضحة كتبها خبير؛ لا تعلم فيها.',en:'A clear rule written by an expert; no learning involved.'}},
+        {t:{ar:'تطبيق خرائط يحسب أقصر طريق',en:'A maps app computing the shortest route'},b:'calc',why:{ar:'خوارزمية بحث كلاسيكية (أقصر مسار) لا تتعلم؛ أما توقع الازدحام فهو تعلم آلي.',en:'A classical search algorithm (shortest path) that does not learn; traffic prediction, however, is machine learning.'}},
+        {t:{ar:'نظام توصية في متجر إلكتروني',en:'A recommender in an online shop'},b:'learn',why:{ar:'يتعلم من مشتريات الزبائن ما يُشترى معًا.',en:'Learns from customers\' purchases what is bought together.'}},
+        {t:{ar:'برنامج حساب الأجور الشهرية',en:'Monthly payroll software'},b:'calc',why:{ar:'معادلات ثابتة من القانون والعقد.',en:'Fixed formulas from law and contract.'}},
+        {t:{ar:'نظام تشخيص طبي بمئات القواعد كتبها أطباء (MYCIN)',en:'A medical diagnosis system with hundreds of doctor-written rules (MYCIN)'},b:'rules',why:{ar:'النظام الخبير الكلاسيكي: معرفة الخبير مرمّزة قواعد.',en:'The classic expert system: expert knowledge encoded as rules.'}},
+        {t:{ar:'التعرف على الوجه في الهاتف',en:'Face recognition on a phone'},b:'learn',why:{ar:'شبكة عصبية تدربت على ملايين الوجوه.',en:'A neural network trained on millions of faces.'}},
+        {t:{ar:'ChatGPT',en:'ChatGPT'},b:'learn',why:{ar:'نموذج لغوي تعلم من نصوص هائلة التنبؤ بالكلمة التالية.',en:'A language model that learned next-word prediction from vast text.'}},
+        {t:{ar:'نموذج يتنبأ بتعثر القروض من ملفات سابقة',en:'A model predicting loan default from past files'},b:'learn',why:{ar:'تقييم ائتماني بالتعلم الآلي: القاعدة من البيانات.',en:'Credit scoring by machine learning: the rule comes from data.'}}]}]},
+    qs:[
+      {k:'mcq',q:{ar:'ما السؤال الذي يميز الذكاء الاصطناعي الحديث عن البرمجة التقليدية؟',en:'Which question separates modern AI from traditional programming?'},o:{ar:['هل الحاسوب سريع؟','من كتب القاعدة: الإنسان أم استُخرجت من البيانات؟','هل البرنامج على الإنترنت؟','هل له واجهة محادثة؟'],en:['Is the computer fast?','Who wrote the rule: a human, or was it extracted from data?','Is the program online?','Does it have a chat interface?']},a:1,w:{ar:'التعلم من البيانات هو الفارق الجوهري.',en:'Learning from data is the essential difference.'}},
+      {k:'tf',q:{ar:'النظام الخبير يتعلم من أخطائه تلقائيًا.',en:'An expert system learns from its mistakes automatically.'},a:false,w:{ar:'قواعده ثابتة حتى يعدّلها إنسان؛ هذا سبب هشاشته.',en:'Its rules stay fixed until a human edits them; that is why it is brittle.'}},
+      {k:'mcq',q:{ar:'«النموذج» في التعلم الآلي هو:',en:'In machine learning, the "model" is:'},o:{ar:['ملف البيانات','ما تعلمته الآلة من الأمثلة ويُستعمل للتنبؤ','الحاسوب نفسه','المبرمج'],en:['The data file','What the machine learned from examples, used to predict','The computer itself','The programmer']},a:1,w:{ar:'البيانات مدخل، النموذج مخرج التعلم.',en:'Data are the input; the model is the output of learning.'}}]},
+
+  { id:'s2', n:'2', t:{ar:'العائلة: AI ⊃ ML ⊃ DL، ولماذا الآن؟',en:'The family: AI ⊃ ML ⊃ DL, and why now?'}, y:{ar:'المحور 1: المصطلحات التي تسمعها كل يوم',en:'Topic 1: the words you hear every day'},
+    story:{ar:[
+      'ثلاث دوائر متداخلة: <b>الذكاء الاصطناعي</b> الدائرة الكبرى (كل ما يحاكي الذكاء، بقواعد أو بتعلم)؛ داخلها <b>التعلم الآلي (Machine Learning)</b>: الأنظمة التي تتعلم من البيانات؛ وداخله <b>التعلم العميق (Deep Learning)</b>: التعلم بشبكات عصبية متعددة الطبقات، وهو ما يقف وراء الصور والكلام والنماذج اللغوية.',
+      'لماذا انفجر كل هذا بعد 2012 وليس قبله؟ ثلاثة محركات التقت: <b>البيانات الضخمة (Big Data)</b> من الإنترنت والهواتف، <b>معالجات الرسوميات (GPU)</b> التي تدرّب الشبكات بسرعة، و<b>الخوارزميات</b> التي نضجت (الانتشار العكسي، المحوّل). الأفكار كانت موجودة منذ عقود؛ الوقود والمحرك هما الجديد.',
+      'ومن فروع الحقل التي ستسمعها: <b>معالجة اللغة الطبيعية (NLP)</b> للنصوص والكلام، <b>الرؤية الحاسوبية (Computer vision)</b> للصور، و<b>الذكاء الاصطناعي التوليدي (Generative AI)</b> الذي ينتج محتوى جديدًا.'],
+      en:[
+      'Three nested circles: <b>Artificial Intelligence</b> is the outer one (anything that mimics intelligence, by rules or by learning); inside it <b>Machine Learning</b>: systems that learn from data; inside that <b>Deep Learning</b>: learning with multi-layer neural networks, which powers images, speech and language models.',
+      'Why did all this explode after 2012 and not before? Three engines met: <b>Big Data</b> from the internet and phones, <b>GPUs</b> that train networks fast, and <b>algorithms</b> that matured (backpropagation, the Transformer). The ideas had existed for decades; the fuel and the engine are what is new.',
+      'Branches you will hear about: <b>Natural Language Processing (NLP)</b> for text and speech, <b>computer vision</b> for images, and <b>generative AI</b> that produces new content.']},
+    lesson:{ar:'كل تعلم عميق تعلم آلي، وكل تعلم آلي ذكاء اصطناعي؛ والعكس غير صحيح.',en:'All deep learning is machine learning, and all machine learning is AI; the reverse is not true.'},
+    terms:[
+      {en:'Machine Learning (ML)',fr:'Apprentissage automatique',ar:'التعلم الآلي',s:{ar:'فرع الذكاء الاصطناعي الذي تتعلم فيه الآلة القاعدة من أمثلة بدل أن يكتبها إنسان.',en:'The branch of AI in which the machine learns the rule from examples instead of a human writing it.'},c:{ar:'ليس مرادفًا للذكاء الاصطناعي كله؛ الأنظمة الخبيرة ذكاء اصطناعي بلا تعلم.',en:'Not a synonym for all of AI; expert systems are AI without learning.'}},
+      {en:'Deep Learning (DL)',fr:'Apprentissage profond',ar:'التعلم العميق',s:{ar:'تعلم آلي بشبكات عصبية ذات طبقات كثيرة؛ ممتاز في الصور والصوت والنصوص، ويحتاج بيانات ضخمة وحوسبة قوية.',en:'Machine learning with many-layered neural networks; excellent at images, audio and text, and hungry for data and compute.'},c:{ar:'«عميق» تعني عدد الطبقات لا عمق الفهم.',en:'"Deep" refers to the number of layers, not depth of understanding.'}},
+      {en:'Natural Language Processing (NLP)',fr:'Traitement automatique du langage naturel',ar:'معالجة اللغة الطبيعية',s:{ar:'جعل الحاسوب يتعامل مع لغة البشر: ترجمة، تلخيص، تصنيف مشاعر، محادثة.',en:'Making computers handle human language: translation, summarisation, sentiment, dialogue.'},c:{ar:'اللغة «الطبيعية» هي لغة البشر مقابل لغات البرمجة.',en:'"Natural" language means human language, as opposed to programming languages.'}},
+      {en:'Generative AI',fr:'IA générative',ar:'الذكاء الاصطناعي التوليدي',s:{ar:'نماذج تنتج محتوى جديدًا (نص، صورة، صوت، شفرة) بدل أن تصنف محتوى موجودًا.',en:'Models that produce new content (text, image, audio, code) instead of classifying existing content.'},c:{ar:'التوليدي فرع من التعلم العميق لا بديل عنه.',en:'Generative AI is a branch of deep learning, not a replacement for it.'}},
+      {en:'Big Data',fr:'Mégadonnées',ar:'البيانات الضخمة',s:{ar:'بيانات بحجم وسرعة وتنوع يتجاوز الأدوات التقليدية؛ الوقود الذي جعل التعلم العميق ممكنًا.',en:'Data whose volume, velocity and variety exceed traditional tools; the fuel that made deep learning possible.'},c:{ar:'الضخامة وحدها لا تكفي: البيانات المصنفة الجيدة أهم من الكمية.',en:'Volume alone is not enough: good labelled data matter more than quantity.'}},
+      {en:'GPU (Graphics Processing Unit)',fr:'Processeur graphique',ar:'معالج الرسوميات',s:{ar:'شريحة صُممت لألعاب الفيديو وتبيّن أنها مثالية لتدريب الشبكات العصبية لأنها تنفذ آلاف العمليات بالتوازي.',en:'A chip designed for video games that turned out ideal for training neural networks because it runs thousands of operations in parallel.'},c:{ar:'ليست «ذكاءً»؛ هي العتاد الذي يجعل التدريب ممكنًا في أيام بدل سنوات.',en:'Not "intelligence"; it is the hardware that makes training take days instead of years.'}}],
+    activity:{id:'sorter',title:{ar:'فرز: في أي دائرة؟',en:'Sort: which circle?'},rounds:[
+      {title:{ar:'ضع كل تقنية في أضيق دائرة تنتمي إليها',en:'Place each technology in the narrowest circle it belongs to'},buckets:[
+        {id:'ai',t:{ar:'ذكاء اصطناعي فقط (بلا تعلم)',en:'AI only (no learning)'}},{id:'ml',t:{ar:'تعلم آلي (كلاسيكي)',en:'Machine learning (classical)'}},{id:'dl',t:{ar:'تعلم عميق',en:'Deep learning'}}],
+       items:[
+        {t:{ar:'Deep Blue في الشطرنج (1997)',en:'Deep Blue at chess (1997)'},b:'ai',why:{ar:'بحث وقواعد تقييم كتبها بشر؛ لم يتعلم.',en:'Search plus human-written evaluation rules; it did not learn.'}},
+        {t:{ar:'انحدار لوجستي للتقييم الائتماني',en:'Logistic regression for credit scoring'},b:'ml',why:{ar:'نموذج إحصائي يتعلم أوزانه من الملفات السابقة؛ لا طبقات عصبية.',en:'A statistical model that learns its weights from past files; no neural layers.'}},
+        {t:{ar:'ChatGPT',en:'ChatGPT'},b:'dl',why:{ar:'محوّل بمليارات المعاملات: تعلم عميق.',en:'A Transformer with billions of parameters: deep learning.'}},
+        {t:{ar:'نظام خبير لتركيب الحواسيب (XCON)',en:'An expert system for configuring computers (XCON)'},b:'ai',why:{ar:'آلاف القواعد المكتوبة يدويًا.',en:'Thousands of hand-written rules.'}},
+        {t:{ar:'تجميع الزبائن في شرائح (Clustering)',en:'Clustering customers into segments'},b:'ml',why:{ar:'تعلم آلي غير موجّه كلاسيكي.',en:'Classical unsupervised machine learning.'}},
+        {t:{ar:'التعرف على الكلام في الهاتف',en:'Speech recognition on a phone'},b:'dl',why:{ar:'شبكات عميقة منذ 2015 تقريبًا.',en:'Deep networks since about 2015.'}},
+        {t:{ar:'الغابة العشوائية للتنبؤ بالطلب',en:'A random forest for demand forecasting'},b:'ml',why:{ar:'خوارزمية أشجار قرار؛ تعلم آلي كلاسيكي.',en:'A decision-tree algorithm; classical machine learning.'}},
+        {t:{ar:'توليد الصور (Midjourney)',en:'Image generation (Midjourney)'},b:'dl',why:{ar:'نموذج انتشار: تعلم عميق توليدي.',en:'A diffusion model: generative deep learning.'}}]}]},
+    qs:[
+      {k:'mcq',q:{ar:'أي العلاقات صحيحة؟',en:'Which relation is correct?'},o:{ar:['ML ⊃ AI ⊃ DL','AI ⊃ ML ⊃ DL','DL ⊃ ML ⊃ AI','الثلاثة دوائر منفصلة'],en:['ML ⊃ AI ⊃ DL','AI ⊃ ML ⊃ DL','DL ⊃ ML ⊃ AI','The three are separate circles']},a:1,w:{ar:'التعلم العميق داخل التعلم الآلي داخل الذكاء الاصطناعي.',en:'Deep learning sits inside machine learning, which sits inside AI.'}},
+      {k:'multi',q:{ar:'المحركات الثلاثة التي فجّرت الذكاء الاصطناعي بعد 2012 (3 إجابات):',en:'The three engines that set AI off after 2012 (3 answers):'},o:{ar:['البيانات الضخمة','معالجات الرسوميات','نضج الخوارزميات','اختراع الحاسوب','إطلاق ChatGPT'],en:['Big data','GPUs','Mature algorithms','The invention of the computer','The launch of ChatGPT']},a:[0,1,2],w:{ar:'الحاسوب أقدم بكثير، وChatGPT نتيجة لا سبب.',en:'The computer is far older, and ChatGPT is a result, not a cause.'}},
+      {k:'tf',q:{ar:'كلمة «عميق» في التعلم العميق تعني أن النموذج يفهم فهمًا عميقًا.',en:'"Deep" in deep learning means the model understands deeply.'},a:false,w:{ar:'تعني عدد الطبقات في الشبكة فقط.',en:'It only refers to the number of layers in the network.'}}]},
+
+  { id:'s3', n:'3', t:{ar:'خرائط الأنواع: القدرة والمخرج',en:'Maps of the kinds: capability and output'}, y:{ar:'المحور 3: ضيق/عام/خارق، تمييزي/توليدي',en:'Topic 3: narrow/general/super, discriminative/generative'},
+    story:{ar:[
+      '<b>حسب القدرة</b>: كل ما هو موجود اليوم <b>ذكاء اصطناعي ضيق (Narrow AI)</b>: ممتاز في مهمة محددة وعاجز خارجها، مهما بدا عبقريًا. <b>الذكاء الاصطناعي العام (AGI)</b> الذي يتعلم أي مهمة ذهنية كالإنسان غير موجود ومحل جدل علمي؛ و<b>الخارق (ASI)</b> افتراض فلسفي. ChatGPT يجيب عن كل شيء لكنه ضيق: مهمته الوحيدة التنبؤ بالنص التالي.',
+      '<b>حسب الوظيفة</b> (تصنيف هِنتزه الشائع): آلات <b>تفاعلية (Reactive)</b> تردّ على الحاضر فقط (Deep Blue)، وآلات ذات <b>ذاكرة محدودة (Limited memory)</b> تستعمل الماضي القريب (السيارة الذاتية، روبوت المحادثة في نافذة سياقه)؛ أما «نظرية العقل» و«الوعي الذاتي» فنظريتان لا نظام يمثلهما.',
+      '<b>حسب المخرج</b>: النموذج <b>التمييزي (Discriminative)</b> يجيب «ما هذا؟» (مزعج/غير مزعج، سيتعثر/لن يتعثر)؛ والنموذج <b>التوليدي (Generative)</b> يجيب «اصنع لي» (نص، صورة). أغلب الذكاء الاصطناعي في المؤسسات تمييزي، وأغلب ما يراه الجمهور توليدي.'],
+      en:[
+      '<b>By capability</b>: everything that exists today is <b>Narrow AI</b>: excellent at one task and helpless outside it, however brilliant it looks. <b>Artificial General Intelligence (AGI)</b>, which would learn any mental task like a human, does not exist and is scientifically debated; <b>superintelligence (ASI)</b> is a philosophical hypothesis. ChatGPT answers everything yet is narrow: its one task is predicting the next piece of text.',
+      '<b>By function</b> (Hintze\'s common classification): <b>reactive</b> machines respond only to the present (Deep Blue); <b>limited-memory</b> machines use the recent past (a self-driving car, a chatbot within its context window); "theory of mind" and "self-awareness" are theoretical categories with no existing system.',
+      '<b>By output</b>: a <b>discriminative</b> model answers "what is this?" (spam/not spam, will default/will not); a <b>generative</b> model answers "make me one" (text, image). Most AI inside companies is discriminative; most of what the public sees is generative.']},
+    lesson:{ar:'«ضيق» وصف للنطاق لا للجودة: نظام ضيق قد يتفوق على كل البشر داخل مهمته.',en:'"Narrow" describes scope, not quality: a narrow system may beat every human within its task.'},
+    terms:[
+      {en:'Narrow AI (ANI / Weak AI)',fr:'IA faible / IA étroite',ar:'الذكاء الاصطناعي الضيق',s:{ar:'نظام متخصص في مهمة أو مجال واحد؛ كل الأنظمة الموجودة اليوم من هذا النوع.',en:'A system specialised in one task or domain; every system that exists today is of this kind.'},c:{ar:'ليس «ضعيفًا» في الأداء؛ ضيق في النطاق.',en:'Not "weak" in performance; narrow in scope.'}},
+      {en:'Artificial General Intelligence (AGI / Strong AI)',fr:'IA générale / IA forte',ar:'الذكاء الاصطناعي العام',s:{ar:'نظام افتراضي يفهم ويتعلم أي مهمة ذهنية يقدر عليها الإنسان وينقل تعلمه بين المجالات.',en:'A hypothetical system that understands and learns any mental task a human can, and transfers learning across domains.'},c:{ar:'روبوت محادثة يجيب عن كل شيء ليس عامًا؛ مهمته واحدة: التنبؤ بالنص.',en:'A chatbot that answers everything is not general; its single task is text prediction.'}},
+      {en:'Artificial Superintelligence (ASI)',fr:'Superintelligence artificielle',ar:'الذكاء الاصطناعي الخارق',s:{ar:'فرضية ذكاء يتفوق على أفضل البشر في كل المجالات؛ موضوع نقاش فلسفي لا تقنية قائمة.',en:'The hypothesis of an intelligence surpassing the best humans in every field; a philosophical debate, not an existing technology.'},c:{ar:'ليس «أحدث نموذج»؛ لا يوجد.',en:'Not "the latest model"; it does not exist.'}},
+      {en:'Discriminative model',fr:'Modèle discriminatif',ar:'النموذج التمييزي',s:{ar:'يصنّف أو يتنبأ برقم: صورة ← «قطة»، ملف ← احتمال تعثر 12%.',en:'Classifies or predicts a number: image → "cat", file → 12% default risk.'},c:{ar:'أسهل قياسًا من التوليدي: الجواب صحيح أو خاطئ.',en:'Easier to measure than generative: the answer is right or wrong.'}},
+      {en:'Generative model',fr:'Modèle génératif',ar:'النموذج التوليدي',s:{ar:'ينتج محتوى جديدًا من وصف: «اكتب إعلانًا» ← نص لم يوجد قبلًا.',en:'Produces new content from a description: "write an ad" → text that never existed before.'},c:{ar:'ليس «أفضل» من التمييزي؛ مناسب لمهام مختلفة.',en:'Not "better" than discriminative; suited to different tasks.'}},
+      {en:'Multimodal AI',fr:'IA multimodale',ar:'الذكاء الاصطناعي متعدد الوسائط',s:{ar:'نموذج يتعامل مع أكثر من نوع مدخل أو مخرج: نص وصورة وصوت معًا.',en:'A model that handles more than one kind of input or output: text, image and audio together.'},c:{ar:'تعدد الوسائط لا يعني ذكاءً عامًا.',en:'Multimodality does not mean general intelligence.'}}],
+    activity:{id:'sorter',title:{ar:'فرز في جولتين',en:'Sort in two rounds'},rounds:[
+      {title:{ar:'حسب القدرة: ضع كل نظام في فئته',en:'By capability: place each system in its class'},intro:{ar:'انتبه: ليست كل السلال بحاجة إلى عناصر.',en:'Careful: not every bucket needs items.'},buckets:[
+        {id:'ani',t:{ar:'ضيق (ANI)',en:'Narrow (ANI)'}},{id:'agi',t:{ar:'عام (AGI)',en:'General (AGI)'}},{id:'asi',t:{ar:'خارق (ASI)',en:'Super (ASI)'}}],
+       items:[
+        {t:{ar:'ChatGPT',en:'ChatGPT'},b:'ani',why:{ar:'مهمة واحدة: التنبؤ بالنص؛ يبدو عامًا لأن النص يغطي كل الموضوعات.',en:'One task: predicting text; it looks general because text covers every topic.'}},
+        {t:{ar:'AlphaGo',en:'AlphaGo'},b:'ani',why:{ar:'يلعب Go فقط؛ لا يستطيع لعب الداما دون إعادة تدريب.',en:'Plays Go only; cannot play checkers without retraining.'}},
+        {t:{ar:'سيارة ذاتية القيادة',en:'A self-driving car'},b:'ani',why:{ar:'مجال واحد: القيادة.',en:'One domain: driving.'}},
+        {t:{ar:'مرشّح البريد المزعج',en:'A spam filter'},b:'ani',why:{ar:'مهمة واحدة ضيقة جدًا.',en:'A single, very narrow task.'}},
+        {t:{ar:'نموذج تقييم ائتماني',en:'A credit-scoring model'},b:'ani',why:{ar:'يتنبأ بالتعثر فقط.',en:'Predicts default only.'}},
+        {t:{ar:'مساعد صوتي (Siri)',en:'A voice assistant (Siri)'},b:'ani',why:{ar:'مجموعة مهارات ضيقة موصولة؛ لا نقل للتعلم بينها.',en:'A set of narrow skills wired together; no transfer of learning between them.'}}]},
+      {title:{ar:'حسب المخرج: تمييزي أم توليدي؟',en:'By output: discriminative or generative?'},buckets:[
+        {id:'disc',t:{ar:'تمييزي: «ما هذا؟»',en:'Discriminative: "what is this?"'}},{id:'gen',t:{ar:'توليدي: «اصنع لي»',en:'Generative: "make me one"'}}],
+       items:[
+        {t:{ar:'كشف الاحتيال في البطاقات',en:'Card fraud detection'},b:'disc',why:{ar:'تصنيف: مشبوهة/سليمة.',en:'Classification: suspicious/normal.'}},
+        {t:{ar:'توليد صورة لمنتج',en:'Generating a product image'},b:'gen',why:{ar:'ينتج بكسلات جديدة.',en:'Produces new pixels.'}},
+        {t:{ar:'التنبؤ بالطلب الشهري',en:'Monthly demand forecasting'},b:'disc',why:{ar:'تنبؤ برقم من بيانات الماضي.',en:'Predicting a number from past data.'}},
+        {t:{ar:'كتابة رسالة بريد بالنموذج اللغوي',en:'Writing an email with a language model'},b:'gen',why:{ar:'ينتج نصًا جديدًا.',en:'Produces new text.'}},
+        {t:{ar:'التعرف على الوجه',en:'Face recognition'},b:'disc',why:{ar:'يجيب: من هذا؟',en:'Answers: who is this?'}},
+        {t:{ar:'استنساخ صوت المذيع',en:'Cloning a presenter\'s voice'},b:'gen',why:{ar:'ينتج صوتًا جديدًا.',en:'Produces new audio.'}}]}]},
+    qs:[
+      {k:'mcq',q:{ar:'ChatGPT يُصنَّف:',en:'ChatGPT is classified as:'},o:{ar:['ذكاءً اصطناعيًا عامًا لأنه يجيب عن كل شيء','ذكاءً اصطناعيًا ضيقًا مهمته التنبؤ بالنص','ذكاءً خارقًا','نظامًا خبيرًا'],en:['General AI because it answers everything','Narrow AI whose task is predicting text','Superintelligence','An expert system']},a:1,w:{ar:'اتساع الموضوعات لا يعني اتساع القدرة.',en:'Breadth of topics is not breadth of capability.'}},
+      {k:'tf',q:{ar:'النموذج التوليدي أفضل من التمييزي في كل المهام.',en:'A generative model is better than a discriminative one at every task.'},a:false,w:{ar:'لكشف الاحتيال أو التنبؤ بالطلب، التمييزي أدق وأرخص وأسهل قياسًا.',en:'For fraud detection or demand forecasting, discriminative is more accurate, cheaper and easier to measure.'}},
+      {k:'mcq',q:{ar:'Deep Blue آلة:',en:'Deep Blue is a:'},o:{ar:['تفاعلية: ترد على وضع الرقعة الحالي فقط','ذات نظرية عقل','واعية بذاتها','توليدية'],en:['Reactive machine: responds only to the current board','Machine with theory of mind','Self-aware machine','Generative machine']},a:0,w:{ar:'لا ذاكرة لما سبق ولا تعلم؛ حساب على الحاضر.',en:'No memory of the past and no learning; computation on the present.'}}]},
+
+  { id:'s4', n:'4', t:{ar:'من المساعد إلى الوكيل، وحدود اليوم الأول',en:'From assistant to agent, and day-one limits'}, y:{ar:'المحور 3 (الاستقلالية) + المحور 1 (الحدود)',en:'Topic 3 (autonomy) + Topic 1 (limits)'},
+    story:{ar:[
+      '<b>حسب الاستقلالية</b>: في أدنى الدرجات <b>المساعد (Assistant)</b> يقترح والإنسان يقرر وينفذ؛ ثم <b>الأتمتة بإشراف</b>: النظام ينفذ والإنسان يراقب ويتدخل؛ وفي الأعلى <b>الوكيل الذكي (AI agent)</b> يخطط وينفذ مهامًا متعددة الخطوات ويستعمل أدوات (يفتح المتصفح، يرسل بريدًا) ويعود بالنتيجة. كلما ارتفعت الاستقلالية ارتفع العائد وارتفع الخطر.',
+      'وبين <b>الأتمتة (Automation)</b> و<b>التعزيز (Augmentation)</b> فرق اقتصادي: الأتمتة تستبدل مهمة بشرية كاملة، والتعزيز يضاعف إنتاجية الإنسان ويبقيه صاحب القرار. أغلب المكاسب الموثقة اليوم من التعزيز.',
+      '<b>حدود تعرفها من اليوم الأول</b>: النموذج لا «يفهم» بل يحسب أنماطًا؛ قد <b>يهلوس</b> معلومات مقنعة وخاطئة؛ يرث <b>تحيز</b> بياناته؛ يعرف العالم كما كان في بيانات تدريبه؛ ولا يتحمل المسؤولية: من يوقّع يتحمل.'],
+      en:[
+      '<b>By autonomy</b>: at the lowest level the <b>assistant</b> suggests and the human decides and acts; then <b>supervised automation</b>: the system acts and the human monitors and intervenes; at the top the <b>AI agent</b> plans and executes multi-step tasks, uses tools (opens a browser, sends an email) and reports back. The higher the autonomy, the higher the return and the risk.',
+      'Between <b>automation</b> and <b>augmentation</b> lies an economic difference: automation replaces a whole human task; augmentation multiplies a person\'s productivity and keeps them in charge. Most documented gains today come from augmentation.',
+      '<b>Limits to know from day one</b>: the model does not "understand", it computes patterns; it can <b>hallucinate</b> convincing but false information; it inherits the <b>bias</b> of its data; it knows the world as it was in its training data; and it bears no responsibility: whoever signs does.']},
+    lesson:{ar:'الاستقلالية قرار تصميم لا صفة للتقنية: النظام نفسه قد يكون مساعدًا هنا ووكيلًا هناك.',en:'Autonomy is a design decision, not a property of the technology: the same system may be an assistant here and an agent there.'},
+    terms:[
+      {en:'Agent',fr:'Agent',ar:'الوكيل',s:{ar:'في علم الذكاء الاصطناعي: أي كيان يدرك بيئته ويتصرف فيها لتحقيق هدف؛ من منظم الحرارة إلى الروبوت.',en:'In AI science: any entity that perceives its environment and acts in it to reach a goal; from a thermostat to a robot.'},c:{ar:'المعنى التقني أوسع من «الوكيل الذكي» الحديث.',en:'The technical meaning is broader than the modern "AI agent".'}},
+      {en:'AI agent (Agentic AI)',fr:'Agent IA',ar:'الوكيل الذكي',s:{ar:'نموذج لغوي مزوّد بأدوات وذاكرة يخطط وينفذ مهامًا متعددة الخطوات باستقلالية نسبية.',en:'A language model equipped with tools and memory that plans and executes multi-step tasks with relative autonomy.'},c:{ar:'ليس أذكى من روبوت المحادثة؛ أكثر صلاحيات، ولذلك أخطر.',en:'Not smarter than a chatbot; more permissions, hence riskier.'}},
+      {en:'Automation vs. Augmentation',fr:'Automatisation vs augmentation',ar:'الأتمتة مقابل التعزيز',s:{ar:'الأتمتة: الآلة تؤدي المهمة بدل الإنسان. التعزيز: الآلة تساعد الإنسان فيؤدي أكثر وأفضل.',en:'Automation: the machine does the task instead of the human. Augmentation: the machine helps the human do more and better.'},c:{ar:'القرار بينهما اقتصادي وتنظيمي لا تقني.',en:'The choice between them is economic and organisational, not technical.'}},
+      {en:'Chatbot',fr:'Agent conversationnel',ar:'روبوت المحادثة',s:{ar:'واجهة محادثة فوق نموذج لغوي (أو فوق قواعد بسيطة في الجيل القديم).',en:'A conversational interface on top of a language model (or simple rules in the old generation).'},c:{ar:'الواجهة غير النموذج: ChatGPT واجهة، وGPT النموذج.',en:'The interface is not the model: ChatGPT is the interface, GPT the model.'}},
+      {en:'Context window',fr:'Fenêtre de contexte',ar:'نافذة السياق',s:{ar:'كمية النص التي يستطيع النموذج «رؤيتها» في المحادثة الواحدة؛ ما يخرج منها يُنسى.',en:'The amount of text the model can "see" in one conversation; whatever falls outside is forgotten.'},c:{ar:'ليست ذاكرة دائمة؛ ذاكرة عمل مؤقتة.',en:'Not permanent memory; temporary working memory.'}},
+      {en:'Hallucination',fr:'Hallucination',ar:'الهلوسة',s:{ar:'إنتاج النموذج معلومة مقنعة الشكل خاطئة المضمون (مرجع غير موجود، رقم مخترع) لأنه يتنبأ بالنص الأرجح لا بالحقيقة.',en:'The model producing information that looks convincing but is false (a non-existent reference, an invented figure) because it predicts the likeliest text, not the truth.'},c:{ar:'ليست «كذبًا» مقصودًا ولا عطلًا نادرًا؛ خاصية بنيوية تستوجب التحقق.',en:'Neither deliberate lying nor a rare bug; a structural property that demands verification.'}}],
+    activity:{id:'sorter',title:{ar:'فرز: ما درجة الاستقلالية؟',en:'Sort: what level of autonomy?'},rounds:[
+      {title:{ar:'ضع كل استعمال في درجته',en:'Place each use at its level'},buckets:[
+        {id:'assist',t:{ar:'مساعد: يقترح والإنسان ينفذ',en:'Assistant: suggests, human acts'}},{id:'super',t:{ar:'أتمتة بإشراف: ينفذ والإنسان يراقب',en:'Supervised automation: acts, human monitors'}},{id:'agent',t:{ar:'وكيل: يخطط وينفذ باستقلالية',en:'Agent: plans and acts autonomously'}}],
+       items:[
+        {t:{ar:'النموذج يقترح مسودة رد على شكوى والموظف يراجع ويرسل',en:'The model drafts a reply to a complaint; an employee reviews and sends'},b:'assist',why:{ar:'الإنسان يقرر وينفذ.',en:'The human decides and acts.'}},
+        {t:{ar:'نظام يوقف البطاقة تلقائيًا عند الاشتباه ومحلل يراجع صباحًا',en:'A system blocks a card automatically on suspicion; an analyst reviews each morning'},b:'super',why:{ar:'تنفيذ آلي مع مراقبة بشرية لاحقة.',en:'Automatic action with human monitoring afterwards.'}},
+        {t:{ar:'برنامج يبحث عن موردين ويراسلهم ويحجز اجتماعات وحده',en:'A program finds suppliers, emails them and books meetings on its own'},b:'agent',why:{ar:'مهام متعددة الخطوات بأدوات وبلا موافقة لكل خطوة.',en:'Multi-step tasks with tools and no approval per step.'}},
+        {t:{ar:'تصحيح إملائي يقترح تصويبات',en:'A spell-checker suggesting corrections'},b:'assist',why:{ar:'اقتراح فقط.',en:'Suggestion only.'}},
+        {t:{ar:'تسعير ديناميكي يغيّر الأسعار آليًا ضمن سقف وأرضية يراجعهما المدير أسبوعيًا',en:'Dynamic pricing that changes prices automatically within a floor and ceiling the manager reviews weekly'},b:'super',why:{ar:'ينفذ ضمن حدود، والإنسان يراقب.',en:'Acts within bounds; the human monitors.'}},
+        {t:{ar:'مساعد ينفذ عملية شراء كاملة على الإنترنت ببطاقة المؤسسة',en:'An assistant completing an online purchase with the company card'},b:'agent',why:{ar:'تنفيذ مستقل لعملية لا تُعكس بسهولة؛ أعلى خطر.',en:'Autonomous execution of a hard-to-reverse action; the highest risk.'}}]}]},
+    qs:[
+      {k:'mcq',q:{ar:'الفرق بين الأتمتة والتعزيز:',en:'The difference between automation and augmentation:'},o:{ar:['الأتمتة للمصانع والتعزيز للمكاتب','الأتمتة تستبدل المهمة، والتعزيز يضاعف إنتاجية الإنسان ويبقيه صاحب القرار','لا فرق','التعزيز أغلى دائمًا'],en:['Automation is for factories, augmentation for offices','Automation replaces the task; augmentation multiplies human productivity and keeps the human in charge','No difference','Augmentation is always more expensive']},a:1,w:{ar:'أغلب المكاسب الموثقة اليوم من التعزيز.',en:'Most documented gains today come from augmentation.'}},
+      {k:'tf',q:{ar:'الهلوسة عطل نادر يختفي في النماذج الحديثة.',en:'Hallucination is a rare bug that disappears in modern models.'},a:false,w:{ar:'خاصية بنيوية: النموذج يتنبأ بالنص الأرجح لا بالحقيقة؛ التحقق واجب دائمًا.',en:'A structural property: the model predicts the likeliest text, not the truth; verification is always required.'}},
+      {k:'mcq',q:{ar:'ما الذي يجعل الوكيل أخطر من روبوت المحادثة؟',en:'What makes an agent riskier than a chatbot?'},o:{ar:['أنه أذكى','أنه يملك صلاحيات تنفيذ (أدوات) ويعمل خطوات متعددة بلا موافقة لكل خطوة','أنه أغلى','أنه أبطأ'],en:['It is smarter','It has execution permissions (tools) and runs many steps without approval for each','It is more expensive','It is slower']},a:1,w:{ar:'الخطر من الصلاحيات لا من الذكاء.',en:'The risk comes from permissions, not intelligence.'}},
+      {k:'tf',q:{ar:'النتائج الصادرة عن النموذج دقيقة لأنها من حاسوب.',en:'A model\'s outputs are accurate because they come from a computer.'},a:false,w:{ar:'النموذج يرث أخطاء بياناته وقد يهلوس؛ الدقة تُقاس ولا تُفترض.',en:'The model inherits its data\'s errors and can hallucinate; accuracy is measured, never assumed.'}}]}
+  ],
+  final:{rows:{ar:[
+    ['ما هو؟','الذكاء الاصطناعي هو أداء الحاسوب لمهام كنا نظنها تحتاج ذكاءً بشريًا؛ الفارق الجوهري: من كتب القاعدة، الإنسان أم البيانات؟'],
+    ['العائلة','AI ⊃ ML ⊃ DL؛ والانفجار بعد 2012 من التقاء البيانات الضخمة ومعالجات الرسوميات والخوارزميات الناضجة.'],
+    ['الأنواع','كل ما هو موجود ضيق؛ العام والخارق افتراضان. التمييزي يجيب «ما هذا؟» والتوليدي «اصنع لي».'],
+    ['الاستقلالية','مساعد ← أتمتة بإشراف ← وكيل: كلما زادت الاستقلالية زاد العائد والخطر؛ والتعزيز لا الأتمتة مصدر أغلب المكاسب.'],
+    ['الحدود','لا فهم، هلوسة محتملة، تحيز موروث، معرفة متوقفة عند بيانات التدريب، ومسؤولية تبقى على من يوقّع.']],
+    en:[
+    ['What is it?','AI is a computer performing tasks we thought needed human intelligence; the key difference: who wrote the rule, a human or the data?'],
+    ['The family','AI ⊃ ML ⊃ DL; the post-2012 explosion came from big data, GPUs and mature algorithms meeting.'],
+    ['The kinds','Everything that exists is narrow; general and super are hypotheses. Discriminative answers "what is this?", generative "make me one".'],
+    ['Autonomy','Assistant → supervised automation → agent: more autonomy, more return and more risk; augmentation, not automation, yields most gains.'],
+    ['Limits','No understanding, possible hallucination, inherited bias, knowledge frozen at training data, and responsibility stays with whoever signs.']]},
+   question:{ar:'اختر تطبيقًا تستعمله يوميًا: أين تضعه على الخرائط الأربع (القاعدة، الدائرة، المخرج، الاستقلالية)؟',en:'Pick an app you use every day: where does it sit on the four maps (rule, circle, output, autonomy)?'}}
+});
+</script>
+</body>
+</html>
